@@ -4,6 +4,7 @@
     background-color: #fff; /* White theme */
     height: 100vh;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
 }
@@ -112,7 +113,7 @@ form input {
 }
 
 form button {
-    background-color: #385898;
+    background-color: #1877f2;
     color: white;
     border: none;
     padding: 12px;
@@ -165,3 +166,63 @@ form button:disabled {
     color: #385898;
     text-decoration: none;
 }
+
+.navbar2 {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 40px;
+    z-index: 1000;
+  }
+  
+  .nav-logo {
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+  }
+  
+  .nav-links button {
+    background: none;
+    border: none;
+    margin-left: 20px;
+    font-size: 16px;
+    cursor: pointer;
+    color: #555;
+  }
+  
+  .nav-links button:hover {
+    color: #1877f2;
+  }
+  
+  .about-section, .join-section {
+    padding: 100px 40px;
+    text-align: center;
+  }
+  
+  
+  
+  .join-btn {
+    margin-top: 20px;
+    background: #1877f2;
+    color: white;
+    padding: 12px 24px;
+    font-size: 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  .join-btn:hover {
+    background: #145cc4;
+  }
+
+  .home-section {
+    padding-top: 680px; /* offset for navbar */
+    padding-left: 100px;
+    padding-bottom: 25px;
+  }

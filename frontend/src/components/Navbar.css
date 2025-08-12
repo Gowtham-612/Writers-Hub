@@ -1,0 +1,234 @@
+/* Navbar Container */
+.navbar {
+    position: sticky;
+    top: 0;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid #eee;
+    z-index: 1000;
+  }
+  
+  .navbar-container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 0 1rem;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  /* Logo */
+  .navbar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+  
+  .logo-icon {
+    background: linear-gradient(135deg, #6366f1, #3b82f6);
+    border-radius: 12px;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .logo-spark {
+    color: white;
+  }
+  
+  .logo-text {
+    font-size: 20px;
+    font-weight: bold;
+    background: linear-gradient(90deg, #6366f1, #3b82f6);
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+  
+  /* Nav Links */
+  .nav-links {
+    display: flex;
+    gap: 16px;
+  }
+  
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    color: #555;
+    text-decoration: none;
+    transition: all 0.3s;
+  }
+  
+  .nav-link:hover {
+    background: #f3f4f6;
+    color: #111;
+    transform: translateY(-2px);
+  }
+  
+  .nav-icon {
+    width: 18px;
+    height: 18px;
+  }
+  
+  /* Actions */
+  .navbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  /* Icon Buttons */
+  .icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    color: #555;
+    transition: all 0.3s;
+  }
+  
+  .icon-btn:hover {
+    background: #f3f4f6;
+    color: #111;
+  }
+  
+  /* Notification */
+  .notification-btn {
+    position: relative;
+  }
+  
+  .notification-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: #ef4444;
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    border-radius: 50%;
+    padding: 2px 5px;
+  }
+  
+  /* User Menu */
+  .user-menu {
+    position: relative;
+  }
+  
+  .user-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+  }
+  
+  .user-avatar-placeholder {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #6366f1, #3b82f6);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+  }
+  
+  .username {
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+  }
+  
+  /* Dropdown */
+  .dropdown {
+    position: absolute;
+    right: 0;
+    top: 110%;
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    animation: fadeIn 0.2s ease;
+    min-width: 180px;
+  }
+  
+  .dropdown-header {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .dropdown-name {
+    font-weight: bold;
+    font-size: 14px;
+  }
+  
+  .dropdown-username {
+    font-size: 12px;
+    color: #666;
+  }
+  
+  .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    font-size: 14px;
+    color: #555;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+  
+  .dropdown-item:hover {
+    background: #f3f4f6;
+  }
+  
+  .logout {
+    color: #ef4444;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  /* Mobile */
+  .mobile-toggle {
+    display: none;
+  }
+  
+  @media (max-width: 768px) {
+    .nav-links {
+      position: absolute;
+      top: 64px;
+      left: 0;
+      right: 0;
+      flex-direction: column;
+      background: white;
+      padding: 12px;
+      gap: 10px;
+      display: none;
+    }
+    .nav-links.open {
+      display: flex;
+    }
+    .mobile-toggle {
+      display: block;
+    }
+  }
+  
