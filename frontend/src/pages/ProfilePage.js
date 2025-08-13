@@ -12,23 +12,36 @@ import {
   Link as LinkIcon,
   Plus,
   Minus,
-  BookOpen
+  BookOpen,
+  X
 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import DOMPurify from 'dompurify';
+import './Dashboard.css';
 
 const ProfilePage = () => {
   const { username } = useParams();
   const { user: currentUser } = useContext(AuthContext);
   const [profile, setProfile] = useState(null);
   const [posts, setPosts] = useState([]);
-  const [activeTab, setActiveTab] = useState('posts');
+  const location = window.location;
+  const params = new URLSearchParams(location.search);
+  const initialTab = params.get('tab') === 'drafts' ? 'drafts' : 'posts';
+  const [activeTab, setActiveTab] = useState(initialTab);
+  const [drafts, setDrafts] = useState([]);
+  const [draftsLoading, setDraftsLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [followLoading, setFollowLoading] = useState(false);
+  const [showFollowers, setShowFollowers] = useState(false);
+  const [showFollowing, setShowFollowing] = useState(false);
 
   useEffect(() => {
     fetchProfile();
     fetchPosts();
+    if (currentUser && currentUser.username === username) {
+      fetchDrafts();
+    }
   }, [username]);
 
   const fetchProfile = async () => {
@@ -49,6 +62,18 @@ const ProfilePage = () => {
       setPosts(response.data);
     } catch (error) {
       console.error('Error fetching posts:', error);
+    }
+  };
+
+  const fetchDrafts = async () => {
+    try {
+      setDraftsLoading(true);
+      const res = await axios.get(`/api/users/${username}/drafts`);
+      setDrafts(res.data);
+    } catch (e) {
+      console.error('Error fetching drafts:', e);
+    } finally {
+      setDraftsLoading(false);
     }
   };
 
@@ -187,14 +212,14 @@ const ProfilePage = () => {
                 <div className="text-2xl font-bold text-text-primary">{profile.posts_count}</div>
                 <div className="text-sm text-text-secondary">Posts</div>
               </div>
-              <div className="text-center">
+              <Link to={`/profile/${username}/followers`} className="text-center">
                 <div className="text-2xl font-bold text-text-primary">{profile.followers_count}</div>
                 <div className="text-sm text-text-secondary">Followers</div>
-              </div>
-              <div className="text-center">
+              </Link>
+              <Link to={`/profile/${username}/following`} className="text-center">
                 <div className="text-2xl font-bold text-text-primary">{profile.following_count}</div>
                 <div className="text-sm text-text-secondary">Following</div>
-              </div>
+              </Link>
             </div>
 
             {/* Join Date */}
@@ -219,28 +244,19 @@ const ProfilePage = () => {
           <BookOpen className="w-4 h-4 inline mr-2" />
           Posts ({profile.posts_count})
         </button>
-        <button
-          onClick={() => setActiveTab('followers')}
-          className={`px-6 py-3 font-medium transition-colors ${
-            activeTab === 'followers'
-              ? 'text-primary-color border-b-2 border-primary-color'
-              : 'text-text-secondary hover:text-text-primary'
-          }`}
-        >
-          <Users className="w-4 h-4 inline mr-2" />
-          Followers ({profile.followers_count})
-        </button>
-        <button
-          onClick={() => setActiveTab('following')}
-          className={`px-6 py-3 font-medium transition-colors ${
-            activeTab === 'following'
-              ? 'text-primary-color border-b-2 border-primary-color'
-              : 'text-text-secondary hover:text-text-primary'
-          }`}
-        >
-          <Users className="w-4 h-4 inline mr-2" />
-          Following ({profile.following_count})
-        </button>
+        {isOwnProfile && (
+          <button
+            onClick={() => setActiveTab('drafts')}
+            className={`px-6 py-3 font-medium transition-colors ${
+              activeTab === 'drafts'
+                ? 'text-primary-color border-b-2 border-primary-color'
+                : 'text-text-secondary hover:text-text-primary'
+            }`}
+          >
+            <Edit3 className="w-4 h-4 inline mr-2" />
+            Drafts ({drafts.length})
+          </button>
+        )}
       </div>
 
       {/* Tab Content */}
@@ -265,30 +281,146 @@ const ProfilePage = () => {
             </div>
           ) : (
             posts.map((post) => (
-              <PostCard key={post.id} post={post} />
+              <FeedPost
+                key={post.id}
+                post={post}
+                onLike={async (postId, isLiked) => {
+                  try {
+                    if (isLiked) await axios.delete(`/api/posts/${postId}/like`);
+                    else await axios.post(`/api/posts/${postId}/like`);
+                    setPosts(prev => prev.map(p => p.id === postId ? { ...p, is_liked: !isLiked, likes_count: isLiked ? (Number(p.likes_count)||0)-1 : (Number(p.likes_count)||0)+1 } : p));
+                  } catch {
+                    toast.error('Failed to update like');
+                  }
+                }}
+                onCommentAdded={(postId) => setPosts(prev => prev.map(p => p.id === postId ? { ...p, comments_count: (Number(p.comments_count)||0)+1 } : p))}
+              />
             ))
           )}
         </div>
       )}
 
-      {activeTab === 'followers' && (
-        <FollowersTab userId={profile.id} />
+      {activeTab === 'drafts' && isOwnProfile && (
+        <div className="space-y-4">
+          {draftsLoading ? (
+            <div className="text-center py-8">Loading drafts...</div>
+          ) : drafts.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-text-secondary">No drafts yet</p>
+              <Link to="/write" className="btn btn-primary mt-4">Create Draft</Link>
+            </div>
+          ) : (
+            drafts.map((d) => (
+              <div key={d.id} className="card">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold">{d.title || 'Untitled'}</h3>
+                    <p className="text-text-secondary text-sm">Last edited {formatDate(d.updated_at || d.created_at)}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Link to={`/write?draftId=${d.id}`} className="btn btn-secondary">Edit Draft</Link>
+                    <button
+                      className="btn btn-primary"
+                      onClick={async () => {
+                        try {
+                          const res = await axios.post(`/api/posts/${d.id}/publish`);
+                          toast.success('Draft published');
+                          // Remove from drafts and refresh posts
+                          setDrafts(prev => prev.filter(x => x.id !== d.id));
+                          fetchPosts();
+                          // Switch to Posts tab and update URL
+                          setActiveTab('posts');
+                          try {
+                            const newUrl = `/profile/${username}`;
+                            window.history.replaceState(null, '', newUrl);
+                          } catch {}
+                        } catch (e) {
+                          toast.error('Failed to publish draft');
+                        }
+                      }}
+                    >
+                      Publish
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       )}
 
-      {activeTab === 'following' && (
-        <FollowingTab userId={profile.id} />
-      )}
+      {/* Full-page routes will handle followers/following lists */}
     </div>
   );
 };
 
-// Post Card Component
-const PostCard = ({ post }) => {
+// Dashboard-like FeedPost reused
+const FeedPost = ({ post, onLike, onCommentAdded }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isTruncatable, setIsTruncatable] = useState(false);
+  const [plainText, setPlainText] = useState('');
+  const [showCommentBox, setShowCommentBox] = useState(false);
+  const [commentText, setCommentText] = useState('');
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+  const [comments, setComments] = useState([]);
+  const [commentsPage, setCommentsPage] = useState(1);
+  const [commentsHasMore, setCommentsHasMore] = useState(true);
+  const [commentsLoading, setCommentsLoading] = useState(false);
+
+  useEffect(() => {
+    const div = document.createElement('div');
+    div.innerHTML = post.content || '';
+    const text = (div.textContent || div.innerText || '').trim();
+    setPlainText(text);
+    setIsTruncatable(text.length > 250);
+  }, [post.content]);
+
+  const fetchComments = async (nextPage = 1) => {
+    try {
+      setCommentsLoading(true);
+      const limit = 10;
+      const res = await axios.get(`/api/posts/${post.id}/comments?page=${nextPage}&limit=${limit}`);
+      const newComments = res.data || [];
+      setComments(nextPage === 1 ? newComments : [...comments, ...newComments]);
+      setCommentsHasMore(newComments.length === limit);
+      setCommentsPage(nextPage);
+    } catch (e) {
+      toast.error('Failed to load comments');
+    } finally {
+      setCommentsLoading(false);
+    }
+  };
+
+  const toggleComments = () => {
+    setShowCommentBox(prev => {
+      const opening = !prev;
+      if (opening && comments.length === 0) fetchComments(1);
+      return opening;
+    });
+  };
+
+  const submitComment = async () => {
+    const content = commentText.trim();
+    if (!content) return;
+    try {
+      setIsSubmittingComment(true);
+      await axios.post(`/api/posts/${post.id}/comments`, { content });
+      setCommentText('');
+      setShowCommentBox(false);
+      onCommentAdded(post.id);
+      fetchComments(1);
+      toast.success('Comment added');
+    } catch (e) {
+      toast.error('Failed to add comment');
+    } finally {
+      setIsSubmittingComment(false);
+    }
+  };
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
     const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
-    
     if (diffInHours < 1) return 'Just now';
     if (diffInHours < 24) return `${diffInHours}h ago`;
     if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d ago`;
@@ -296,67 +428,87 @@ const PostCard = ({ post }) => {
   };
 
   return (
-    <div className="card">
-      <div className="flex items-start gap-3 mb-4">
-        <img
-          src={post.profile_image || `https://ui-avatars.com/api/?name=${post.display_name}&background=3b82f6&color=fff`}
-          alt={post.display_name}
-          className="w-10 h-10 rounded-full"
-        />
-        <div className="flex-1">
-          <div className="flex items-center justify-between">
-            <div>
-              <Link 
-                to={`/profile/${post.username}`}
-                className="font-semibold text-text-primary hover:text-primary-color"
-              >
-                {post.display_name || post.username}
-              </Link>
-              <span className="text-text-secondary text-sm ml-2">
-                {formatDate(post.created_at)}
-              </span>
-            </div>
-          </div>
+    <article className="post">
+      <div className="post-header">
+        <Link to={`/profile/${post.username}`}>
+          <img
+            src={post.profile_image || `https://ui-avatars.com/api/?name=${post.display_name}&background=6366f1&color=fff`}
+            alt={post.display_name}
+            className="post-avatar"
+          />
+        </Link>
+        <div className="post-user-info">
+          <Link to={`/profile/${post.username}`} className="post-username">
+            {post.display_name || post.username}
+          </Link>
+          <span className="post-time">{formatDate(post.created_at)}</span>
         </div>
       </div>
 
       <Link to={`/post/${post.id}`}>
-        <h3 className="text-xl font-semibold text-text-primary mb-3 hover:text-primary-color">
-          {post.title}
-        </h3>
+        <h3 className="post-title">{post.title}</h3>
       </Link>
 
-      <div className="text-text-secondary mb-4 line-clamp-3">
-        {post.content.length > 200 
-          ? `${post.content.substring(0, 200)}...` 
-          : post.content
-        }
-      </div>
+      {isExpanded ? (
+        <div className="post-content expanded" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content || '') }} />
+      ) : (
+        <div className="post-content">{plainText.length > 250 ? `${plainText.slice(0, 250)}…` : plainText}</div>
+      )}
 
-      {post.tags && post.tags.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-4">
-          {post.tags.map((tag, index) => (
-            <span
-              key={index}
-              className="px-2 py-1 bg-primary-color bg-opacity-10 text-primary-color text-xs rounded-full"
-            >
-              #{tag}
-            </span>
+      {isTruncatable && (
+        <button className="view-more-btn" onClick={() => setIsExpanded(prev => !prev)} aria-expanded={isExpanded}>
+          {isExpanded ? 'Show less' : 'View more'}
+        </button>
+      )}
+
+      {post.tags?.length > 0 && (
+        <div className="post-tags">
+          {post.tags.map((tag, i) => (
+            <span key={i}>#{tag}</span>
           ))}
         </div>
       )}
 
-      <div className="flex items-center gap-6">
-        <div className="flex items-center gap-2 text-text-secondary">
-          <Heart className="w-4 h-4" />
-          <span className="text-sm">{post.likes_count}</span>
-        </div>
-        <div className="flex items-center gap-2 text-text-secondary">
-          <MessageCircle className="w-4 h-4" />
-          <span className="text-sm">{post.comments_count}</span>
-        </div>
+      <div className="post-actions">
+        <button onClick={() => onLike(post.id, post.is_liked)} className={post.is_liked ? 'liked' : ''}>
+          <Heart size={18} /> {Number(post.likes_count) || 0}
+        </button>
+        <button onClick={toggleComments}>
+          <MessageCircle size={18} /> {Number(post.comments_count) || 0}
+        </button>
       </div>
-    </div>
+
+      {showCommentBox && (
+        <>
+          <div className="comment-form">
+            <textarea value={commentText} onChange={(e) => setCommentText(e.target.value)} placeholder="Write a comment..." rows={3} />
+            <div className="comment-actions">
+              <button className="btn-primary" onClick={submitComment} disabled={isSubmittingComment || commentText.trim().length === 0}>{isSubmittingComment ? 'Posting...' : 'Post Comment'}</button>
+              <button className="btn-secondary" onClick={() => setShowCommentBox(false)} disabled={isSubmittingComment}>Cancel</button>
+            </div>
+          </div>
+
+          <div className="comments-list">
+            {comments.map((c) => (
+              <div key={c.id} className="comment-item">
+                <img className="comment-avatar" src={c.profile_image || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.display_name || c.username)}&background=6366f1&color=fff&size=64`} alt={c.display_name || c.username} onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(c.display_name || c.username)}&background=6366f1&color=fff&size=64`; }} />
+                <div className="comment-body">
+                  <div className="comment-meta">
+                    <span className="comment-author">{c.display_name || c.username}</span>
+                    <span className="comment-time">{formatDate(c.created_at)}</span>
+                  </div>
+                  <div className="comment-text">{c.content}</div>
+                </div>
+              </div>
+            ))}
+            {commentsLoading && <div className="comments-loading">Loading comments...</div>}
+            {!commentsLoading && commentsHasMore && (
+              <button className="btn-secondary load-more-comments" onClick={() => fetchComments(commentsPage + 1)}>Load more comments</button>
+            )}
+          </div>
+        </>
+      )}
+    </article>
   );
 };
 

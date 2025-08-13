@@ -14,12 +14,16 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import DOMPurify from 'dompurify';
+import './Dashboard.css';
 
 const ExplorePage = () => {
   const { user } = useContext(AuthContext);
   const [posts, setPosts] = useState([]);
   const [popularTags, setPopularTags] = useState([]);
+  const [users, setUsers] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchMode, setSearchMode] = useState('all'); // 'all' | 'title' | 'author'
   const [selectedTag, setSelectedTag] = useState('');
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -28,6 +32,11 @@ const ExplorePage = () => {
   useEffect(() => {
     fetchPosts();
     fetchPopularTags();
+    if (searchQuery) {
+      fetchUsers();
+    } else {
+      setUsers([]);
+    }
   }, [searchQuery, selectedTag]);
 
   const fetchPosts = async () => {
@@ -39,7 +48,9 @@ const ExplorePage = () => {
       });
 
       if (searchQuery) {
-        params.append('search', searchQuery);
+        if (searchMode === 'title') params.append('title', searchQuery);
+        else if (searchMode === 'author') params.append('author', searchQuery);
+        else params.append('search', searchQuery);
       }
 
       if (selectedTag) {
@@ -86,11 +97,15 @@ const ExplorePage = () => {
       }
       
       // Update the post in the state
-      setPosts(prev => prev.map(post => 
-        post.id === postId 
-          ? { ...post, is_liked: !isLiked, likes_count: isLiked ? post.likes_count - 1 : post.likes_count + 1 }
-          : post
-      ));
+      setPosts(prev => prev.map(post => {
+        if (post.id !== postId) return post;
+        const current = Number(post.likes_count) || 0;
+        return {
+          ...post,
+          is_liked: !isLiked,
+          likes_count: isLiked ? current - 1 : current + 1
+        };
+      }));
     } catch (error) {
       console.error('Error handling like:', error);
       toast.error('Failed to update like');
@@ -101,6 +116,7 @@ const ExplorePage = () => {
     e.preventDefault();
     setPage(1);
     fetchPosts();
+    if (searchQuery) fetchUsers();
   };
 
   const handleTagClick = (tag) => {
@@ -111,6 +127,15 @@ const ExplorePage = () => {
   const handleLoadMore = () => {
     setPage(prev => prev + 1);
     fetchPosts();
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const res = await axios.get(`/api/users/search/${encodeURIComponent(searchQuery)}?limit=10&page=1`);
+      setUsers(res.data || []);
+    } catch (e) {
+      setUsers([]);
+    }
   };
 
   const formatDate = (dateString) => {
@@ -124,88 +149,189 @@ const ExplorePage = () => {
     return date.toLocaleDateString();
   };
 
-  const PostCard = ({ post }) => (
-    <div className="card">
-      <div className="flex items-start gap-3 mb-4">
-        <img
-          src={post.profile_image || `https://ui-avatars.com/api/?name=${post.display_name}&background=3b82f6&color=fff`}
-          alt={post.display_name}
-          className="w-10 h-10 rounded-full"
-        />
-        <div className="flex-1">
-          <div className="flex items-center justify-between">
-            <div>
-              <Link 
-                to={`/profile/${post.username}`}
-                className="font-semibold text-text-primary hover:text-primary-color"
-              >
-                {post.display_name || post.username}
-              </Link>
-              <span className="text-text-secondary text-sm ml-2">
-                {formatDate(post.created_at)}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
+  const FeedPost = ({ post, onLike, onCommentAdded }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [isTruncatable, setIsTruncatable] = useState(false);
+    const [plainText, setPlainText] = useState('');
+    const [showCommentBox, setShowCommentBox] = useState(false);
+    const [commentText, setCommentText] = useState('');
+    const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+    const [comments, setComments] = useState([]);
+    const [commentsPage, setCommentsPage] = useState(1);
+    const [commentsHasMore, setCommentsHasMore] = useState(true);
+    const [commentsLoading, setCommentsLoading] = useState(false);
 
-      <Link to={`/post/${post.id}`}>
-        <h3 className="text-xl font-semibold text-text-primary mb-3 hover:text-primary-color">
-          {post.title}
-        </h3>
-      </Link>
+    useEffect(() => {
+      const div = document.createElement('div');
+      div.innerHTML = post.content || '';
+      const text = (div.textContent || div.innerText || '').trim();
+      setPlainText(text);
+      setIsTruncatable(text.length > 250);
+    }, [post.content]);
 
-      <div className="text-text-secondary mb-4 line-clamp-3">
-        {post.content.length > 200 
-          ? `${post.content.substring(0, 200)}...` 
-          : post.content
-        }
-      </div>
+    const fetchComments = async (nextPage = 1) => {
+      try {
+        setCommentsLoading(true);
+        const limit = 10;
+        const res = await axios.get(`/api/posts/${post.id}/comments?page=${nextPage}&limit=${limit}`);
+        const newComments = res.data || [];
+        setComments(nextPage === 1 ? newComments : [...comments, ...newComments]);
+        setCommentsHasMore(newComments.length === limit);
+        setCommentsPage(nextPage);
+      } catch (e) {
+        toast.error('Failed to load comments');
+      } finally {
+        setCommentsLoading(false);
+      }
+    };
 
-      {post.tags && post.tags.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-4">
-          {post.tags.map((tag, index) => (
-            <button
-              key={index}
-              onClick={() => handleTagClick(tag)}
-              className="px-2 py-1 bg-primary-color bg-opacity-10 text-primary-color text-xs rounded-full hover:bg-opacity-20 transition-colors"
-            >
-              #{tag}
-            </button>
-          ))}
-        </div>
-      )}
+    const toggleComments = () => {
+      setShowCommentBox(prev => {
+        const opening = !prev;
+        if (opening && comments.length === 0) fetchComments(1);
+        return opening;
+      });
+    };
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-6">
-          <button
-            onClick={() => handleLike(post.id, post.is_liked)}
-            className={`flex items-center gap-2 px-3 py-1 rounded-full transition-colors ${
-              post.is_liked 
-                ? 'text-error-color bg-error-color bg-opacity-10' 
-                : 'text-text-secondary hover:text-error-color hover:bg-error-color hover:bg-opacity-10'
-            }`}
-          >
-            <Heart className={`w-4 h-4 ${post.is_liked ? 'fill-current' : ''}`} />
-            <span className="text-sm">{post.likes_count}</span>
-          </button>
+    const submitComment = async () => {
+      const content = commentText.trim();
+      if (!content) return;
+      try {
+        setIsSubmittingComment(true);
+        await axios.post(`/api/posts/${post.id}/comments`, { content });
+        setCommentText('');
+        setShowCommentBox(false);
+        onCommentAdded(post.id);
+        fetchComments(1);
+        toast.success('Comment added');
+      } catch (e) {
+        toast.error('Failed to add comment');
+      } finally {
+        setIsSubmittingComment(false);
+      }
+    };
 
-          <Link
-            to={`/post/${post.id}`}
-            className="flex items-center gap-2 px-3 py-1 rounded-full text-text-secondary hover:text-primary-color hover:bg-primary-color hover:bg-opacity-10 transition-colors"
-          >
-            <MessageCircle className="w-4 h-4" />
-            <span className="text-sm">{post.comments_count}</span>
+    return (
+      <article className="post">
+        <div className="post-header">
+          <Link to={`/profile/${post.username}`}>
+            <img
+              src={post.profile_image || `https://ui-avatars.com/api/?name=${post.display_name}&background=6366f1&color=fff`}
+              alt={post.display_name}
+              className="post-avatar"
+            />
           </Link>
-
-          <button className="flex items-center gap-2 px-3 py-1 rounded-full text-text-secondary hover:text-primary-color hover:bg-primary-color hover:bg-opacity-10 transition-colors">
-            <Share2 className="w-4 h-4" />
-            <span className="text-sm">Share</span>
+          <div className="post-user-info">
+            <Link to={`/profile/${post.username}`} className="post-username">
+              {post.display_name || post.username}
+            </Link>
+            <span className="post-time">{formatDate(post.created_at)}</span>
+          </div>
+          <button className="post-options">
+            <Share2 size={16} />
           </button>
         </div>
-      </div>
-    </div>
-  );
+
+        <Link to={`/post/${post.id}`}>
+          <h3 className="post-title">{post.title}</h3>
+        </Link>
+
+        {isExpanded ? (
+          <div
+            className="post-content expanded"
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content || '') }}
+          />
+        ) : (
+          <div className="post-content">
+            {plainText.length > 250 ? `${plainText.slice(0, 250)}…` : plainText}
+          </div>
+        )}
+
+        {isTruncatable && (
+          <button
+            className="view-more-btn"
+            onClick={() => setIsExpanded(prev => !prev)}
+            aria-expanded={isExpanded}
+          >
+            {isExpanded ? 'Show less' : 'View more'}
+          </button>
+        )}
+
+        {post.tags?.length > 0 && (
+          <div className="post-tags">
+            {post.tags.map((tag, i) => (
+              <button key={i} onClick={() => handleTagClick(tag)}>#{tag}</button>
+            ))}
+          </div>
+        )}
+
+        <div className="post-actions">
+          <button
+            onClick={() => onLike(post.id, post.is_liked)}
+            className={post.is_liked ? 'liked' : ''}
+          >
+            <Heart size={18} /> {Number(post.likes_count) || 0}
+          </button>
+          <button onClick={toggleComments}>
+            <MessageCircle size={18} /> {Number(post.comments_count) || 0}
+          </button>
+          <button>
+            <Share2 size={18} /> Share
+          </button>
+        </div>
+
+        {showCommentBox && (
+          <>
+            <div className="comment-form">
+              <textarea
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                placeholder="Write a comment..."
+                rows={3}
+              />
+              <div className="comment-actions">
+                <button className="btn-primary" onClick={submitComment} disabled={isSubmittingComment || commentText.trim().length === 0}>
+                  {isSubmittingComment ? 'Posting...' : 'Post Comment'}
+                </button>
+                <button className="btn-secondary" onClick={() => setShowCommentBox(false)} disabled={isSubmittingComment}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+
+            <div className="comments-list">
+              {comments.map((c) => (
+                <div key={c.id} className="comment-item">
+                  <img
+                    className="comment-avatar"
+                    src={c.profile_image || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.display_name || c.username)}&background=6366f1&color=fff&size=64`}
+                    alt={c.display_name || c.username}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(c.display_name || c.username)}&background=6366f1&color=fff&size=64`;
+                    }}
+                  />
+                  <div className="comment-body">
+                    <div className="comment-meta">
+                      <span className="comment-author">{c.display_name || c.username}</span>
+                      <span className="comment-time">{formatDate(c.created_at)}</span>
+                    </div>
+                    <div className="comment-text">{c.content}</div>
+                  </div>
+                </div>
+              ))}
+              {commentsLoading && <div className="comments-loading">Loading comments...</div>}
+              {!commentsLoading && commentsHasMore && (
+                <button className="btn-secondary load-more-comments" onClick={() => fetchComments(commentsPage + 1)}>
+                  Load more comments
+                </button>
+              )}
+            </div>
+          </>
+        )}
+      </article>
+    );
+  };
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -222,8 +348,8 @@ const ExplorePage = () => {
         <div className="lg:col-span-3">
           {/* Search Bar */}
           <div className="card mb-6">
-            <form onSubmit={handleSearch} className="flex gap-3">
-              <div className="flex-1 relative">
+            <form onSubmit={handleSearch} className="flex gap-3 flex-wrap">
+              <div className="flex-1 min-w-[220px] relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-text-secondary" />
                 <input
                   type="text"
@@ -232,6 +358,14 @@ const ExplorePage = () => {
                   placeholder="Search posts, authors, or content..."
                   className="form-input pl-10"
                 />
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-sm">Search by:</label>
+                <select value={searchMode} onChange={(e) => setSearchMode(e.target.value)} className="form-input">
+                  <option value="all">All</option>
+                  <option value="title">Title</option>
+                  <option value="author">Author</option>
+                </select>
               </div>
               <button type="submit" className="btn btn-primary">
                 <Search className="w-4 h-4" />
@@ -264,6 +398,32 @@ const ExplorePage = () => {
               >
                 Clear all
               </button>
+            </div>
+          )}
+
+          {/* People (authors) results when searching */}
+          {searchQuery && users.length > 0 && (
+            <div className="card mb-6">
+              <h3 className="text-lg font-semibold text-text-primary mb-4">People</h3>
+              <div className="space-y-3">
+                {users.map((u) => (
+                  <div key={u.id} className="flex items-center gap-3">
+                    <img
+                      src={u.profile_image || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.display_name || u.username)}&background=3b82f6&color=fff`}
+                      alt={u.display_name || u.username}
+                      className="w-10 h-10 rounded-full"
+                    />
+                    <div className="flex-1">
+                      <Link to={`/profile/${u.username}`} className="font-semibold hover:text-primary-color">
+                        {u.display_name || u.username}
+                      </Link>
+                      <div className="text-sm text-text-secondary">@{u.username}</div>
+                      {u.bio && <div className="text-sm text-text-secondary">{u.bio}</div>}
+                    </div>
+                    <Link to={`/profile/${u.username}`} className="btn btn-secondary">View</Link>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
@@ -302,7 +462,16 @@ const ExplorePage = () => {
           ) : (
             <div className="space-y-6">
               {posts.map((post) => (
-                <PostCard key={post.id} post={post} />
+                <FeedPost
+                  key={post.id}
+                  post={post}
+                  onLike={(postId, isLiked) => {
+                    handleLike(postId, isLiked);
+                  }}
+                  onCommentAdded={(postId) => {
+                    setPosts(prev => prev.map(p => p.id === postId ? { ...p, comments_count: (Number(p.comments_count) || 0) + 1 } : p));
+                  }}
+                />
               ))}
               
               {hasMore && (

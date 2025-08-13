@@ -17,6 +17,8 @@ import ChatPage from './pages/ChatPage';
 import ExplorePage from './pages/ExplorePage';
 import SettingsPage from './pages/SettingsPage';
 import SetPasswordPage from './pages/SetPasswordPage';
+import FollowersPage from './pages/FollowersPage';
+import FollowingPage from './pages/FollowingPage';
 import RegisterPage from './pages/RegisterPage';
 
 // Context
@@ -145,6 +147,8 @@ function App() {
                 } />
                 <Route path="/post/:id" element={<PostPage />} />
                 <Route path="/profile/:username" element={<ProfilePage />} />
+                <Route path="/profile/:username/followers" element={<FollowersPage />} />
+                <Route path="/profile/:username/following" element={<FollowingPage />} />
                 <Route path="/chat/:userId" element={
                   <ProtectedRoute>
                     <ChatPage />

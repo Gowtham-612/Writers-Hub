@@ -70,13 +70,18 @@ const Navbar = () => {
           {/* User Menu */}
           <div className="user-menu">
             <button className="user-btn" onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}>
-              {user.profile_image ? (
-                <img src={user.profile_image} alt={user.display_name} className="user-avatar" />
-              ) : (
-                <div className="user-avatar-placeholder">
-                  <User />
-                </div>
-              )}
+              <img
+                src={
+                  user.profile_image ||
+                  `https://ui-avatars.com/api/?name=${encodeURIComponent(user.display_name || user.username)}&background=3b82f6&color=fff&size=80`
+                }
+                alt={user.display_name || user.username}
+                className="user-avatar"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.display_name || user.username)}&background=3b82f6&color=fff&size=80`;
+                }}
+              />
               <span className="username">{user.display_name || user.username}</span>
             </button>
 

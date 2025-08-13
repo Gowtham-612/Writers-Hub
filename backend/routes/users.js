@@ -132,6 +132,33 @@ router.get('/:username/posts', async (req, res) => {
   }
 });
 
+// Get user's drafts (owner-only)
+router.get('/:username/drafts', isAuthenticated, async (req, res) => {
+  try {
+    const { username } = req.params;
+
+    if (req.user.username !== username) {
+      return res.status(403).json({ error: 'Not authorized to view drafts' });
+    }
+
+    const { rows } = await db.query(
+      `SELECT p.*, u.username, u.display_name, u.profile_image,
+              (SELECT COUNT(*) FROM likes WHERE post_id = p.id) as likes_count,
+              (SELECT COUNT(*) FROM comments WHERE post_id = p.id) as comments_count
+       FROM posts p
+       JOIN users u ON p.user_id = u.id
+       WHERE u.username = $1 AND p.is_published = false
+       ORDER BY p.created_at DESC`,
+      [username]
+    );
+
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching drafts:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Get followers
 router.get('/:username/followers', async (req, res) => {
   try {
