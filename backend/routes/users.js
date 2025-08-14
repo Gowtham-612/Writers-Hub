@@ -46,6 +46,49 @@ router.get('/profile/:username', async (req, res) => {
   }
 });
 
+// Get user profile by ID
+router.get('/profile/id/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { rows } = await db.query(
+      `SELECT id, username, display_name, profile_image, bio, created_at 
+       FROM users WHERE id = $1`,
+      [userId]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const user = rows[0];
+
+    // Get follower and following counts
+    const [followersResult, followingResult, postsResult] = await Promise.all([
+      db.query('SELECT COUNT(*) FROM followers WHERE following_id = $1', [user.id]),
+      db.query('SELECT COUNT(*) FROM followers WHERE follower_id = $1', [user.id]),
+      db.query('SELECT COUNT(*) FROM posts WHERE user_id = $1 AND is_published = true', [user.id])
+    ]);
+
+    user.followers_count = parseInt(followersResult.rows[0].count);
+    user.following_count = parseInt(followingResult.rows[0].count);
+    user.posts_count = parseInt(postsResult.rows[0].count);
+
+    // Check if current user is following this user
+    if (req.isAuthenticated()) {
+      const { rows: followCheck } = await db.query(
+        'SELECT id FROM followers WHERE follower_id = $1 AND following_id = $2',
+        [req.user.id, user.id]
+      );
+      user.is_following = followCheck.length > 0;
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error('Error fetching user profile by ID:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Update user profile
 router.put('/profile', isAuthenticated, async (req, res) => {
   try {

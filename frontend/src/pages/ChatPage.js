@@ -49,7 +49,7 @@ const ChatPage = () => {
       setChatId(chatResponse.data.chat_id);
 
       // Get other user info
-      const userResponse = await axios.get(`/api/users/profile/${userId}`);
+      const userResponse = await axios.get(`/api/users/profile/id/${userId}`);
       setOtherUser(userResponse.data);
 
       // Get chat messages
@@ -72,7 +72,21 @@ const ChatPage = () => {
 
       newSocket.on('new_message', (data) => {
         if (data.chatId === chatResponse.data.chat_id) {
-          setMessages(prev => [...prev, data.message]);
+          // Only add the message if it's not from the current user or if it's from another device
+          setMessages(prev => {
+            // Check if this message already exists in our messages array
+            const messageExists = prev.some(msg => 
+              msg.id === data.message.id || 
+              (msg.sender_id === data.message.sender_id && 
+               msg.content === data.message.content && 
+               Math.abs(new Date(msg.created_at) - new Date(data.message.created_at)) < 1000)
+            );
+            
+            if (!messageExists) {
+              return [...prev, data.message];
+            }
+            return prev;
+          });
         }
       });
 
@@ -113,10 +127,27 @@ const ChatPage = () => {
     try {
       setSending(true);
       
+      const messageContent = newMessage.trim();
+      
+      // Add message to local state immediately for better UX
+      const tempMessage = {
+        id: `temp-${Date.now()}`,
+        chat_id: chatId,
+        sender_id: user.id,
+        content: messageContent,
+        created_at: new Date().toISOString(),
+        is_read: false,
+        username: user.username,
+        display_name: user.display_name,
+        profile_image: user.profile_image
+      };
+      
+      setMessages(prev => [...prev, tempMessage]);
+      
       // Emit message through socket
       socket.emit('send_message', {
         chatId: chatId,
-        content: newMessage.trim()
+        content: messageContent
       });
 
       setNewMessage('');
@@ -196,9 +227,9 @@ const ChatPage = () => {
           <User className="w-16 h-16 text-text-secondary mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-text-primary mb-4">User not found</h2>
           <p className="text-text-secondary mb-6">The user you're trying to chat with doesn't exist.</p>
-          <Link to="/dashboard" className="btn btn-primary">
+          <Link to="/chat" className="btn btn-primary">
             <ArrowLeft className="w-4 h-4" />
-            Back to Dashboard
+            Back to Chat
           </Link>
         </div>
       </div>
@@ -211,7 +242,7 @@ const ChatPage = () => {
       <div className="card mb-0 rounded-b-none border-b-0">
         <div className="flex items-center gap-4">
           <Link
-            to="/dashboard"
+            to="/chat"
             className="p-2 rounded-lg hover:bg-surface-color transition-colors"
           >
             <ArrowLeft className="w-5 h-5 text-text-secondary" />

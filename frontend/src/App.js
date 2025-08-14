@@ -13,6 +13,7 @@ import AiAssistPage from './pages/AiAssistPage';
 import PostPage from './pages/PostPage';
 import ProfilePage from './pages/ProfilePage';
 import ChatPage from './pages/ChatPage';
+import ChatListPage from './pages/ChatListPage';
 import ExplorePage from './pages/ExplorePage';
 import SettingsPage from './pages/SettingsPage';
 import SetPasswordPage from './pages/SetPasswordPage';
@@ -143,6 +144,11 @@ function App() {
                 <Route path="/profile/:username" element={<ProfilePage />} />
                 <Route path="/profile/:username/followers" element={<FollowersPage />} />
                 <Route path="/profile/:username/following" element={<FollowingPage />} />
+                <Route path="/chat" element={
+                  <ProtectedRoute>
+                    <ChatListPage />
+                  </ProtectedRoute>
+                } />
                 <Route path="/chat/:userId" element={
                   <ProtectedRoute>
                     <ChatPage />

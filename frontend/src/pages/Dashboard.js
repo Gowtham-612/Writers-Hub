@@ -38,10 +38,14 @@ const Dashboard = () => {
   const loadGlobalPostsOnly = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`/api/posts?page=1&limit=10`);
+      const res = await axios.get(`/api/posts?page=1&limit=50`);
       console.log('[DASHBOARD] Global posts only:', res.data.length, 'posts');
-      setPosts(res.data);
-      setHasMore(res.data.length === 10);
+      
+      // Sort posts by recency
+      const sortedPosts = [...res.data].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      
+      setPosts(sortedPosts);
+      setHasMore(res.data.length === 50);
     } catch (error) {
       console.error('Error loading global posts:', error);
       toast.error('Failed to load posts');
@@ -79,42 +83,37 @@ const Dashboard = () => {
 
       let combined = [];
 
-      // 1. Fetch user's own posts first
+      // 1. Fetch user's own posts first - get all user posts
       try {
-        const myPostsRes = await axios.get(`/api/posts/my-posts?page=1&limit=5`);
+        const myPostsRes = await axios.get(`/api/posts/my-posts?page=1&limit=50`);
         console.log('[DASHBOARD] My posts response:', myPostsRes.data.length, 'posts');
         combined = appendUnique([], myPostsRes.data);
-        hasMoreMyPostsRef.current = myPostsRes.data.length === 5;
+        hasMoreMyPostsRef.current = myPostsRes.data.length === 50;
       } catch (e) {
         console.error('[DASHBOARD] Error fetching my posts:', e);
         hasMoreMyPostsRef.current = false;
       }
 
-      // 2. Add followed users' posts
+      // 2. Add followed users' posts - get all followed users posts
       try {
-        const feedRes = await axios.get(`/api/posts/feed?page=1&limit=5`);
+        const feedRes = await axios.get(`/api/posts/feed?page=1&limit=50`);
         console.log('[DASHBOARD] Feed response:', feedRes.data.length, 'posts');
         combined = appendUnique(combined, feedRes.data);
-        hasMoreFeedRef.current = feedRes.data.length === 5;
+        hasMoreFeedRef.current = feedRes.data.length === 50;
       } catch (e) {
         console.error('[DASHBOARD] Error fetching feed:', e);
         hasMoreFeedRef.current = false;
       }
 
-      // 3. Fill with global posts to ensure minimum 5 posts
-      const remainingSlots = Math.max(0, 5 - combined.length);
-      if (remainingSlots > 0) {
-        try {
-          const globalRes = await axios.get(`/api/posts?page=1&limit=${remainingSlots + 5}`);
-          console.log('[DASHBOARD] Global posts response:', globalRes.data.length, 'posts');
-          combined = appendUnique(combined, globalRes.data);
-          hasMoreGlobalRef.current = globalRes.data.length === (remainingSlots + 5);
-        } catch (e) {
-          console.error('[DASHBOARD] Error fetching global posts:', e);
-          hasMoreGlobalRef.current = false;
-        }
-      } else {
-        hasMoreGlobalRef.current = true; // not fetched yet
+      // 3. Add all global posts
+      try {
+        const globalRes = await axios.get(`/api/posts?page=1&limit=50`);
+        console.log('[DASHBOARD] Global posts response:', globalRes.data.length, 'posts');
+        combined = appendUnique(combined, globalRes.data);
+        hasMoreGlobalRef.current = globalRes.data.length === 50;
+      } catch (e) {
+        console.error('[DASHBOARD] Error fetching global posts:', e);
+        hasMoreGlobalRef.current = false;
       }
 
       console.log('[DASHBOARD] Final combined posts:', combined.length, 'posts');
@@ -122,14 +121,17 @@ const Dashboard = () => {
       // If we still don't have any posts, fetch global posts as fallback
       if (combined.length === 0) {
         try {
-          const fallbackRes = await axios.get(`/api/posts?page=1&limit=10`);
+          const fallbackRes = await axios.get(`/api/posts?page=1&limit=50`);
           console.log('[DASHBOARD] Fallback global posts:', fallbackRes.data.length, 'posts');
           combined = fallbackRes.data;
-          hasMoreGlobalRef.current = fallbackRes.data.length === 10;
+          hasMoreGlobalRef.current = fallbackRes.data.length === 50;
         } catch (e) {
           console.error('[DASHBOARD] Error fetching fallback posts:', e);
         }
       }
+      
+      // Sort posts by recency
+      combined.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
       
       setPosts(combined);
       setPage(1);
@@ -150,8 +152,8 @@ const Dashboard = () => {
       if (hasMoreMyPostsRef.current) {
         try {
           const nextMyPostsPage = myPostsPageRef.current + 1;
-          const myPostsRes = await axios.get(`/api/posts/my-posts?page=${nextMyPostsPage}&limit=5`);
-          hasMoreMyPostsRef.current = myPostsRes.data.length === 5;
+          const myPostsRes = await axios.get(`/api/posts/my-posts?page=${nextMyPostsPage}&limit=50`);
+          hasMoreMyPostsRef.current = myPostsRes.data.length === 50;
           myPostsPageRef.current = nextMyPostsPage;
           for (const p of myPostsRes.data) {
             if (!seenIdsRef.current.has(p.id)) {
@@ -168,8 +170,8 @@ const Dashboard = () => {
       if (hasMoreFeedRef.current) {
         try {
           const nextFeedPage = feedPageRef.current + 1;
-          const feedRes = await axios.get(`/api/posts/feed?page=${nextFeedPage}&limit=5`);
-          hasMoreFeedRef.current = feedRes.data.length === 5;
+          const feedRes = await axios.get(`/api/posts/feed?page=${nextFeedPage}&limit=50`);
+          hasMoreFeedRef.current = feedRes.data.length === 50;
           feedPageRef.current = nextFeedPage;
           for (const p of feedRes.data) {
             if (!seenIdsRef.current.has(p.id)) {
@@ -186,8 +188,8 @@ const Dashboard = () => {
       if (hasMoreGlobalRef.current) {
         try {
           const nextGlobalPage = globalPageRef.current + 1;
-          const globalRes = await axios.get(`/api/posts?page=${nextGlobalPage}&limit=5`);
-          hasMoreGlobalRef.current = globalRes.data.length === 5;
+          const globalRes = await axios.get(`/api/posts?page=${nextGlobalPage}&limit=50`);
+          hasMoreGlobalRef.current = globalRes.data.length === 50;
           globalPageRef.current = nextGlobalPage;
           for (const p of globalRes.data) {
             if (!seenIdsRef.current.has(p.id)) {
@@ -204,6 +206,9 @@ const Dashboard = () => {
         setHasMore(false);
         return;
       }
+
+      // Sort new posts by recency
+      newPosts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
       setPosts(prev => prev.concat(newPosts));
       setPage(prev => prev + 1);
