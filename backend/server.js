@@ -18,7 +18,6 @@ const userRoutes = require('./routes/users');
 const postRoutes = require('./routes/posts');
 const chatRoutes = require('./routes/chat');
 const aiRoutes = require('./routes/ai');
-const uploadRoutes = require('./routes/upload');
 const { setupSocketHandlers } = require('./socket/socketHandlers');
 
 const app = express();
@@ -75,7 +74,6 @@ app.use('/api/users', userRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/ai', aiRoutes);
-app.use('/api/upload', uploadRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

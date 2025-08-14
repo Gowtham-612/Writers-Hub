@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { AuthContext, ThemeContext } from '../App';
 import { 
   User, 
@@ -10,7 +10,8 @@ import {
   Bell,
   Shield,
   Trash2,
-  ArrowLeft
+  ArrowLeft,
+  RefreshCw
 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -19,11 +20,49 @@ const SettingsPage = () => {
   const { user, logout } = useContext(AuthContext);
   const { theme, toggleTheme } = useContext(ThemeContext);
   const [loading, setLoading] = useState(false);
+  const [stats, setStats] = useState({
+    posts: 0,
+    followers: 0,
+    following: 0
+  });
+  const [statsLoading, setStatsLoading] = useState(true);
   const [formData, setFormData] = useState({
     display_name: user?.display_name || '',
     bio: user?.bio || '',
     theme_preference: user?.theme_preference || 'light'
   });
+
+  // Fetch user stats on component mount
+  useEffect(() => {
+    if (user?.username) {
+      fetchUserStats();
+    }
+  }, [user?.username]);
+
+  const fetchUserStats = async (showToast = false) => {
+    try {
+      setStatsLoading(true);
+      const response = await axios.get(`/api/users/profile/${user.username}`);
+      
+      setStats({
+        posts: response.data.posts_count || 0,
+        followers: response.data.followers_count || 0,
+        following: response.data.following_count || 0
+      });
+
+      if (showToast) {
+        toast.success('Stats updated!');
+      }
+    } catch (error) {
+      console.error('Error fetching user stats:', error);
+      if (showToast) {
+        toast.error('Failed to update stats');
+      }
+      // Keep default values if fetch fails
+    } finally {
+      setStatsLoading(false);
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -44,6 +83,9 @@ const SettingsPage = () => {
       if (formData.theme_preference !== theme) {
         toggleTheme();
       }
+      
+      // Refresh stats after profile update
+      await fetchUserStats();
       
       toast.success('Profile updated successfully!');
     } catch (error) {
@@ -279,21 +321,48 @@ const SettingsPage = () => {
         <div className="space-y-6">
           {/* Quick Stats */}
           <div className="card">
-            <h3 className="text-lg font-semibold text-text-primary mb-4">Your Stats</h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-text-secondary">Posts</span>
-                <span className="font-semibold text-text-primary">0</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-text-secondary">Followers</span>
-                <span className="font-semibold text-text-primary">0</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-text-secondary">Following</span>
-                <span className="font-semibold text-text-primary">0</span>
-              </div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-text-primary">Your Stats</h3>
+              <button
+                onClick={() => fetchUserStats(true)}
+                disabled={statsLoading}
+                className="p-1 rounded-lg hover:bg-surface-color transition-colors disabled:opacity-50"
+                title="Refresh stats"
+              >
+                <RefreshCw className={`w-4 h-4 text-text-secondary ${statsLoading ? 'animate-spin' : ''}`} />
+              </button>
             </div>
+            {statsLoading ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-text-secondary">Posts</span>
+                  <div className="w-8 h-4 bg-surface-color rounded animate-pulse"></div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-text-secondary">Followers</span>
+                  <div className="w-8 h-4 bg-surface-color rounded animate-pulse"></div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-text-secondary">Following</span>
+                  <div className="w-8 h-4 bg-surface-color rounded animate-pulse"></div>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-text-secondary">Posts</span>
+                  <span className="font-semibold text-text-primary">{stats.posts}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-text-secondary">Followers</span>
+                  <span className="font-semibold text-text-primary">{stats.followers}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-text-secondary">Following</span>
+                  <span className="font-semibold text-text-primary">{stats.following}</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Help & Support */}

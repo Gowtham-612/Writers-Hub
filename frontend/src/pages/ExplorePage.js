@@ -544,16 +544,6 @@ const ExplorePage = () => {
                 </div>
                 <span className="text-text-primary">AI Assistant</span>
               </Link>
-              
-              <Link
-                to="/upload"
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-color transition-colors"
-              >
-                <div className="w-8 h-8 bg-success-color rounded-lg flex items-center justify-center">
-                  <User className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-text-primary">Import File</span>
-              </Link>
             </div>
           </div>
 

@@ -498,7 +498,6 @@ const Dashboard = () => {
           <div className="card">
             <h3>Quick Actions</h3>
             <Link to="/write">✏️ Write</Link>
-            <Link to="/upload">📄 Import File</Link>
             <Link to="/ai-assist">🤖 AI Assistant</Link>
           </div>
           <div className="card">

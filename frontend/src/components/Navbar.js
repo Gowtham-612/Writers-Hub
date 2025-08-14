@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext, ThemeContext } from '../App';
 import { 
-  Home, Edit3, Upload, Bot, Search, MessageCircle, 
+  Home, Edit3, Bot, Search, MessageCircle, 
   Settings, LogOut, User, Sun, Moon, Menu, X, Bell, Sparkles
 } from 'lucide-react';
 import './Navbar.css';
@@ -26,7 +26,6 @@ const Navbar = () => {
   const navItems = [
     { icon: Home, label: 'Dashboard', path: '/dashboard' },
     { icon: Edit3, label: 'Write', path: '/write' },
-    { icon: Upload, label: 'Upload', path: '/upload' },
     { icon: Bot, label: 'AI Assist', path: '/ai-assist' },
     { icon: Search, label: 'Explore', path: '/explore' },
     { icon: MessageCircle, label: 'Chat', path: '/chat' },

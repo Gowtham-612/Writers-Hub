@@ -9,7 +9,6 @@ import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
 import WritePage from './pages/WritePage';
-import UploadPage from './pages/UploadPage';
 import AiAssistPage from './pages/AiAssistPage';
 import PostPage from './pages/PostPage';
 import ProfilePage from './pages/ProfilePage';
@@ -133,11 +132,6 @@ function App() {
                 <Route path="/write" element={
                   <ProtectedRoute>
                     <WritePage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/upload" element={
-                  <ProtectedRoute>
-                    <UploadPage />
                   </ProtectedRoute>
                 } />
                 <Route path="/ai-assist" element={

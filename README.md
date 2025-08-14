@@ -1,6 +1,6 @@
 # Writers Hub - Social Media Platform for Writers
 
-A full-stack social media platform designed specifically for writers, featuring AI-powered writing assistance, real-time chat, file uploads, and a vibrant community of authors.
+A full-stack social media platform designed specifically for writers, featuring AI-powered writing assistance, real-time chat, and a vibrant community of authors.
 
 ## 🚀 Features
 
@@ -8,7 +8,7 @@ A full-stack social media platform designed specifically for writers, featuring 
 - **Google OAuth Authentication** - Secure login with Google accounts
 - **Rich Text Editor** - Create beautiful posts with formatting, images, and more
 - **Real-time Chat** - Connect with other writers through Socket.io
-- **File Import** - Upload PDF, DOCX, and TXT files with content extraction
+
 - **AI Writing Assistant** - Generate content in your unique style using Ollama
 - **Dark/Light Theme** - Toggle between themes with user preference saving
 
@@ -33,8 +33,7 @@ A full-stack social media platform designed specifically for writers, featuring 
 - **PostgreSQL** - Database
 - **Passport.js** - Authentication
 - **Socket.io** - Real-time communication
-- **Multer** - File upload handling
-- **pdf-parse & mammoth** - File content extraction
+
 - **Axios** - HTTP client for Ollama integration
 
 ### Frontend
@@ -127,9 +126,7 @@ JWT_SECRET=your_jwt_secret_key
 OLLAMA_BASE_URL=http://localhost:11434
 OLLAMA_MODEL=llama3
 
-# File Upload Configuration
-UPLOAD_PATH=./uploads
-MAX_FILE_SIZE=10485760
+
 ```
 
 ### 4. Set up Google OAuth
@@ -193,8 +190,7 @@ writers-hub/
 │   │   ├── users.js
 │   │   ├── posts.js
 │   │   ├── chat.js
-│   │   ├── ai.js
-│   │   └── upload.js
+│   │   └── ai.js
 │   ├── socket/
 │   │   └── socketHandlers.js
 │   ├── scripts/
@@ -210,7 +206,6 @@ writers-hub/
 │   │   │   ├── LoginPage.js
 │   │   │   ├── Dashboard.js
 │   │   │   ├── WritePage.js
-│   │   │   ├── UploadPage.js
 │   │   │   ├── AiAssistPage.js
 │   │   │   ├── PostPage.js
 │   │   │   ├── ProfilePage.js
@@ -272,16 +267,14 @@ writers-hub/
 - `DELETE /api/ai/samples/:id` - Delete AI sample
 - `GET /api/ai/status` - Check Ollama status
 
-### Upload
-- `POST /api/upload` - Upload file
-- `GET /api/upload/supported-types` - Get supported types
+
 
 ## 🎯 Usage Guide
 
 ### For Writers
 1. **Sign up** using your Google account
 2. **Create posts** using the rich text editor
-3. **Import existing work** from PDF, DOCX, or TXT files
+3. **Create content** using the rich text editor
 4. **Use AI assistance** to generate content in your style
 5. **Connect with other writers** through following and chat
 6. **Explore content** by tags and search
@@ -300,7 +293,7 @@ writers-hub/
 - **CORS protection** for API endpoints
 - **Rate limiting** to prevent abuse
 - **Input validation** and sanitization
-- **File upload restrictions** and validation
+
 
 ## 🚀 Deployment
 
