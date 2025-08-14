@@ -9,7 +9,7 @@ A full-stack social media platform designed specifically for writers, featuring 
 - **Rich Text Editor** - Create beautiful posts with formatting, images, and more
 - **Real-time Chat** - Connect with other writers through Socket.io
 
-- **AI Writing Assistant** - Generate content in your unique style using Ollama
+- **AI Writing Assistant** - Generate content in your unique style using DeepSeek AI
 - **Dark/Light Theme** - Toggle between themes with user preference saving
 
 ### Social Features
@@ -20,10 +20,10 @@ A full-stack social media platform designed specifically for writers, featuring 
 - **Search & Explore** - Discover posts by tags, authors, or content
 
 ### AI Integration
-- **Style Mimicry** - AI learns your writing style from past posts
-- **Content Generation** - Generate new content based on your plot ideas
-- **Few-shot Learning** - Uses 2-3 of your past writings as examples
-- **Local AI** - Powered by Ollama for privacy and customization
+- **DeepSeek Chatbot** - Interactive AI writing assistant
+- **Chat Sessions** - Persistent conversation history
+- **Writing Help** - Brainstorming, editing, and creative inspiration
+- **Real-time Responses** - Instant AI assistance for writers
 
 ## 🛠️ Tech Stack
 
@@ -34,7 +34,7 @@ A full-stack social media platform designed specifically for writers, featuring 
 - **Passport.js** - Authentication
 - **Socket.io** - Real-time communication
 
-- **Axios** - HTTP client for Ollama integration
+- **Axios** - HTTP client for DeepSeek AI integration
 
 ### Frontend
 - **React** - UI library
@@ -46,7 +46,7 @@ A full-stack social media platform designed specifically for writers, featuring 
 - **Axios** - API client
 
 ### AI & External Services
-- **Ollama** - Local AI inference
+- **DeepSeek AI** - Advanced language model for writing assistance
 - **Google OAuth** - Authentication
 - **UI Avatars** - Default profile images
 
@@ -56,7 +56,7 @@ Before running this application, make sure you have:
 
 1. **Node.js** (v16 or higher)
 2. **PostgreSQL** (v12 or higher)
-3. **Ollama** (for AI features)
+3. **DeepSeek API Key** (for AI features)
 4. **Google OAuth Credentials**
 
 ## 🚀 Quick Start
@@ -122,9 +122,8 @@ SESSION_SECRET=your_session_secret_key
 # JWT Configuration
 JWT_SECRET=your_jwt_secret_key
 
-# Ollama Configuration
-OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_MODEL=llama3
+# DeepSeek AI Configuration
+DEEPSEEK_API_KEY=your_deepseek_api_key_here
 
 
 ```
@@ -138,14 +137,12 @@ OLLAMA_MODEL=llama3
 5. Add authorized redirect URI: `http://localhost:5000/auth/google/callback`
 6. Copy Client ID and Client Secret to your `.env` file
 
-### 5. Set up Ollama (Optional for AI features)
+### 5. Set up DeepSeek AI (Required for AI features)
 
-1. Install Ollama from [ollama.ai](https://ollama.ai/)
-2. Pull a model:
-```bash
-ollama pull llama3
-# or
-ollama pull mistral
+1. Get a DeepSeek API key from [DeepSeek Console](https://platform.deepseek.com/)
+2. Add your API key to the `.env` file:
+```env
+DEEPSEEK_API_KEY=your_api_key_here
 ```
 
 ### 6. Initialize Database
@@ -259,13 +256,13 @@ writers-hub/
 - `PUT /api/chat/:chatId/read` - Mark as read
 - `GET /api/chat/unread/count` - Get unread count
 
-### AI
-- `GET /api/ai/samples` - Get writing samples
-- `POST /api/ai/generate` - Generate content
-- `POST /api/ai/samples` - Save AI sample
-- `GET /api/ai/samples/all` - Get all AI samples
-- `DELETE /api/ai/samples/:id` - Delete AI sample
-- `GET /api/ai/status` - Check Ollama status
+### AI Chat
+- `POST /api/ai/chat/start` - Start new chat session
+- `POST /api/ai/chat/message` - Send message to AI
+- `GET /api/ai/chat/history/:sessionId` - Get chat history
+- `GET /api/ai/chat/sessions` - Get user's chat sessions
+- `DELETE /api/ai/chat/session/:sessionId` - Delete chat session
+- `GET /api/ai/status` - Check DeepSeek API status
 
 
 
@@ -275,14 +272,14 @@ writers-hub/
 1. **Sign up** using your Google account
 2. **Create posts** using the rich text editor
 3. **Create content** using the rich text editor
-4. **Use AI assistance** to generate content in your style
+4. **Chat with AI** for writing help and inspiration
 5. **Connect with other writers** through following and chat
 6. **Explore content** by tags and search
 
 ### For Developers
 1. **Set up the environment** following the prerequisites
 2. **Configure Google OAuth** for authentication
-3. **Set up Ollama** for AI features (optional)
+3. **Set up DeepSeek API** for AI features
 4. **Run the application** in development mode
 5. **Customize and extend** the platform as needed
 
@@ -340,7 +337,7 @@ If you encounter any issues:
 1. Check the prerequisites and setup instructions
 2. Verify your environment variables
 3. Check the console for error messages
-4. Ensure Ollama is running for AI features
+4. Ensure DeepSeek API key is configured for AI features
 5. Create an issue with detailed information
 
 ## 🔮 Future Enhancements

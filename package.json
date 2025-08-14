@@ -11,7 +11,7 @@
     "build": "cd frontend && npm run build",
     "start": "cd backend && npm start"
   },
-  "keywords": ["writers", "social-media", "ai", "ollama"],
+      "keywords": ["writers", "social-media", "ai", "openrouter", "deepseek"],
   "author": "Writers Hub",
   "license": "MIT",
   "devDependencies": {
