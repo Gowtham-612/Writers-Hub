@@ -6,7 +6,7 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-
+import './WritePage.css';
 const WritePage = () => {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -186,17 +186,18 @@ const WritePage = () => {
             </div>
             
             {tags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 ">
+
                 {tags.map((tag, index) => (
                   <span
                     key={index}
-                    className="flex items-center gap-1 px-3 py-1 bg-primary-color bg-opacity-10 text-primary-color rounded-full text-sm"
+                    className="flex items-center gap-1 px-3 py-1 bg-primary-color  text-primary-color rounded-full text-sm ll"
                   >
                     #{tag}
                     <button
                       type="button"
                       onClick={() => handleRemoveTag(tag)}
-                      className="ml-1 hover:text-error-color"
+                      className="bg-primary-color rounded-fulll hover:text-error-color"
                     >
                       ×
                     </button>

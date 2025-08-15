@@ -1,0 +1,182 @@
+.chatlist-container {
+  max-width: 800px;
+  margin: auto;
+  padding: 20px;
+}
+
+.chatlist-header h1 {
+  font-size: 1.8rem;
+  font-weight: bold;
+}
+
+.chatlist-header p {
+  color: #6b7280;
+  margin-bottom: 20px;
+}
+
+/* Search Section */
+.chatlist-search-card {
+  background: white;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.chatlist-search-form {
+  display: flex;
+  gap: 10px;
+}
+
+.chatlist-search-input-wrap {
+  position: relative;
+  flex: 1;
+}
+
+.chatlist-search-input {
+  width: 100%;
+  padding: 8px 32px 8px 32px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+}
+
+.chatlist-search-icon {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+  color: #9ca3af;
+}
+
+.chatlist-clear-btn {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+}
+
+.chatlist-search-btn {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 0 15px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* Suggestions */
+.chatlist-suggestions {
+  position: absolute;
+  top: 105%;
+  left: 0;
+  width: 100%;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  z-index: 10;
+}
+
+.chatlist-suggestion-item {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.chatlist-suggestion-item:hover {
+  background: #f9fafb;
+}
+
+.chatlist-suggestion-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+}
+
+.chatlist-suggestion-name {
+  font-weight: 500;
+}
+
+.chatlist-suggestion-username {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+/* Conversations */
+.chatlist-card {
+  background: white;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.chatlist-item {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  gap: 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.chatlist-item:hover {
+  background: #f3f4f6;
+}
+
+.chatlist-avatar-wrap {
+  position: relative;
+}
+
+.chatlist-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+}
+
+.chatlist-unread {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #ef4444;
+  color: white;
+  font-size: 0.75rem;
+  padding: 2px 6px;
+  border-radius: 50%;
+}
+
+.chatlist-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.chatlist-info-top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+}
+
+.chatlist-name {
+  font-weight: 600;
+}
+
+.chatlist-time {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.chatlist-lastmsg {
+  font-size: 0.85rem;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chatlist-arrow {
+  color: #9ca3af;
+}

@@ -15,7 +15,7 @@ import {
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import DOMPurify from 'dompurify';
-import './Dashboard.css';
+import './ExplorePage.css';
 
 const ExplorePage = () => {
   const { user } = useContext(AuthContext);
