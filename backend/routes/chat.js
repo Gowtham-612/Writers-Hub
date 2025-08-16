@@ -15,7 +15,7 @@ router.get('/conversations', isAuthenticated, async (req, res) => {
          END as other_user_id,
          u.username as other_username,
          u.display_name as other_display_name,
-         u.profile_image as other_profile_image,
+         u.profile_image ,
          (SELECT content FROM messages WHERE chat_id = c.id ORDER BY created_at DESC LIMIT 1) as last_message,
          (SELECT created_at FROM messages WHERE chat_id = c.id ORDER BY created_at DESC LIMIT 1) as last_message_time,
          (SELECT COUNT(*) FROM messages WHERE chat_id = c.id AND sender_id != $1 AND is_read = false) as unread_count

@@ -4,7 +4,7 @@ import { AuthContext } from '../App';
 import { Search, MessageCircle, User, ArrowRight, X } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import './ChatListPage.css';
+import '../Styling/ChatListPage.css';
 
 const ChatListPage = () => {
   const { user } = useContext(AuthContext);
@@ -129,10 +129,17 @@ const ChatListPage = () => {
                       onClick={() => setShowSuggestions(false)}
                     >
                       <img
-                        src={u.profile_image || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.display_name || u.username)}&background=3b82f6&color=fff`}
-                        alt={u.display_name || u.username}
-                        className="chatlist-suggestion-avatar"
-                      />
+                src={
+                  u.profile_image ||
+                  `https://ui-avatars.com/api/?name=${encodeURIComponent(u.display_name || u.username)}&background=3b82f6&color=fff&size=80`
+                }
+                alt={u.display_name || u.username}
+                className="user-avatar"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(u.display_name || u.username)}&background=3b82f6&color=fff&size=80`;
+                }}
+              />
                       <div>
                         <div className="chatlist-suggestion-name">{u.display_name || u.username}</div>
                         <div className="chatlist-suggestion-username">@{u.username}</div>
@@ -168,10 +175,17 @@ const ChatListPage = () => {
             >
               <div className="chatlist-avatar-wrap">
                 <img
-                  src={c.other_profile_image || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.other_display_name || c.other_username)}&background=3b82f6&color=fff`}
-                  alt={c.other_display_name || c.other_username}
-                  className="chatlist-avatar"
-                />
+                src={
+                  c.profile_image ||
+                  `https://ui-avatars.com/api/?name=${encodeURIComponent(c.other_display_name || c.other_username)}&background=3b82f6&color=fff&size=80`
+                }
+                alt={c.other_display_name || c.other_username}
+                className="chatlist-avatar"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(c.other_display_name || c.other_username)}&background=3b82f6&color=fff&size=80`;
+                }}
+              />
                 {c.unread_count > 0 && (
                   <span className="chatlist-unread">{c.unread_count}</span>
                 )}

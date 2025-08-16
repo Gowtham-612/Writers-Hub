@@ -5,7 +5,7 @@ import { Send, ArrowLeft, User, MessageCircle, MoreVertical, Clock } from 'lucid
 import io from 'socket.io-client';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import './ChatPage.css';
+import '../Styling/ChatPage.css';
 
 const ChatPage = () => {
   const { userId } = useParams();
@@ -27,6 +27,7 @@ const ChatPage = () => {
     return () => {
       if (socket) socket.disconnect();
     };
+    // eslint-disable-next-line
   }, [userId]);
 
   useEffect(() => {
@@ -161,24 +162,28 @@ const ChatPage = () => {
   return (
     <div className="chat-page-container">
       {/* Header */}
-      <div className="chat-page-header">
-        <Link to="/chat" className="chat-page-back">
+      <header className="chat-page-header">
+        <Link to="/chat" className="chat-page-back" aria-label="Back to chats">
           <ArrowLeft />
         </Link>
         <img
-          src={otherUser.profile_image || `https://ui-avatars.com/api/?name=${otherUser.display_name}&background=3b82f6&color=fff`}
-          alt={otherUser.display_name}
-          className="chat-page-avatar"
+          src={otherUser.profile_image || `https://ui-avatars.com/api/?name=${encodeURIComponent(otherUser.display_name || otherUser.username)}&background=3b82f6&color=fff&size=80`}
+          alt={otherUser.display_name || otherUser.username}
+          className="user-avatar"
+          onError={e => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(otherUser.display_name || otherUser.username)}&background=3b82f6&color=fff&size=80`;
+          }}
         />
         <div className="chat-page-user">
           <h2>{otherUser.display_name || otherUser.username}</h2>
           <span>{isTyping ? 'typing...' : 'online'}</span>
         </div>
-        <MoreVertical className="chat-page-more" />
-      </div>
+        <MoreVertical className="chat-page-more" aria-label="More options" />
+      </header>
 
       {/* Messages */}
-      <div className="chat-page-messages">
+      <section className="chat-page-messages">
         {messages.length === 0 ? (
           <div className="chat-page-no-messages">
             <MessageCircle />
@@ -191,9 +196,7 @@ const ChatPage = () => {
             const showDate = index === 0 || formatDate(message.created_at) !== formatDate(messages[index - 1].created_at);
             return (
               <div key={message.id}>
-                {showDate && (
-                  <div className="chat-page-date">{formatDate(message.created_at)}</div>
-                )}
+                {showDate && <div className="chat-page-date">{formatDate(message.created_at)}</div>}
                 <div className={`chat-page-bubble ${isOwn ? 'own' : ''}`}>
                   <p>{message.content}</p>
                   <span><Clock /> {formatTime(message.created_at)}</span>
@@ -203,7 +206,7 @@ const ChatPage = () => {
           })
         )}
         <div ref={messagesEndRef} />
-      </div>
+      </section>
 
       {/* Input */}
       <form onSubmit={handleSendMessage} className="chat-page-input">
@@ -212,8 +215,11 @@ const ChatPage = () => {
           value={newMessage}
           onChange={handleTyping}
           placeholder="Type a message..."
+          className="chat-page-textarea"
+          rows={2}
+          aria-label="Type a message"
         />
-        <button type="submit" disabled={!newMessage.trim()}>
+        <button type="submit" disabled={!newMessage.trim()} className="chat-page-send-btn" aria-label="Send message">
           <Send />
         </button>
       </form>

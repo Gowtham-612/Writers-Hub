@@ -15,7 +15,8 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import './AiAssistPage.css';
+import '../Styling/AiAssistPage.css';
+
 
 const AiAssistPage = () => {
   const { user } = useContext(AuthContext);
@@ -32,12 +33,14 @@ const AiAssistPage = () => {
   useEffect(() => {
     checkApiStatus();
     fetchSessions();
+    // eslint-disable-next-line
   }, []);
 
   useEffect(() => {
     if (currentSession) {
       fetchMessages(currentSession.id);
     }
+    // eslint-disable-next-line
   }, [currentSession]);
 
   useEffect(() => {
@@ -163,9 +166,7 @@ const AiAssistPage = () => {
   const MessageBubble = ({ message }) => (
     <div className={`ai-assist-message-row ${message.role === 'user' ? 'user' : 'assistant'}`}>
       <div className={`ai-assist-message-bubble ${message.role}`}>
-        <div className="ai-assist-message-content">
-          {message.content}
-        </div>
+        <div className="ai-assist-message-content">{message.content}</div>
         <div className="ai-assist-message-time">{formatTime(message.created_at)}</div>
       </div>
     </div>
@@ -174,84 +175,84 @@ const AiAssistPage = () => {
   return (
     <div className="ai-assist-container">
       {/* Header */}
-      <div className="ai-assist-header">
-        <div className="flex items-center gap-4">
-          <button onClick={() => navigate('/dashboard')} className="p-2 rounded-lg hover:bg-gray-100">
-            <ArrowLeft className="w-5 h-5 text-gray-500" />
+      <header className="ai-assist-header">
+        <div className="ai-assist-header-left">
+          <button onClick={() => navigate('/dashboard')} className="btn-icon" aria-label="Back to dashboard">
+            <ArrowLeft className="icon" />
           </button>
-          <div>
+          <div className="ai-assist-header-text">
             <h1>AI Writing Assistant</h1>
             <p>Chat with DeepSeek AI via OpenRouter for writing help and inspiration</p>
           </div>
         </div>
         <div className="ai-assist-status">
-          <div className={`ai-assist-status-dot ${apiStatus === 'connected' ? 'connected' : 'disconnected'}`}></div>
+          <span className={`ai-assist-status-dot ${apiStatus === 'connected' ? 'connected' : 'disconnected'}`}></span>
           <span className="ai-assist-status-text">
             OpenRouter: {apiStatus === 'connected' ? 'Connected' : 'Disconnected'}
           </span>
         </div>
-      </div>
+      </header>
 
-      <div className="ai-assist-main">
+      <main className="ai-assist-main">
         {/* Sidebar */}
-        <div className="ai-assist-sidebar">
+        <aside className="ai-assist-sidebar">
           <div className="ai-assist-sidebar-header">
             <button
               onClick={startNewSession}
               disabled={loading || apiStatus !== 'connected'}
               className="ai-assist-sidebar-btn"
             >
-              {loading ? <Loader className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+              {loading ? <Loader className="icon-spin" /> : <Plus className="icon" />}
               {loading ? 'Starting...' : 'New Chat'}
             </button>
           </div>
           <div className="ai-assist-sessions">
             {sessions.length === 0 ? (
               <div className="ai-assist-empty-state">
-                <MessageCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <MessageCircle className="empty-icon" />
                 <p>No chat sessions yet</p>
-                <p className="text-sm">Start a new conversation to begin</p>
+                <p className="empty-subtext">Start a new conversation to begin</p>
               </div>
             ) : (
-              sessions.map((session) => (
+              sessions.map(session => (
                 <div
                   key={session.id}
                   className={`ai-assist-session ${currentSession?.id === session.id ? 'active' : ''}`}
                   onClick={() => setCurrentSession(session)}
                 >
-                  <div className="flex justify-between">
-                    <div>
-                      <p className="ai-assist-session-title">{session.first_message || 'New conversation'}</p>
-                      <p className="ai-assist-session-date">{formatDate(session.created_at)}</p>
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteSession(session.id);
-                      }}
-                      className="text-red-500 hover:bg-red-100 p-1 rounded"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
+                  <div className="session-info">
+                    <p className="ai-assist-session-title">{session.first_message || 'New conversation'}</p>
+                    <p className="ai-assist-session-date">{formatDate(session.created_at)}</p>
                   </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteSession(session.id);
+                    }}
+                    className="btn-delete-session"
+                    aria-label="Delete session"
+                    title="Delete session"
+                  >
+                    <Trash2 className="icon-small" />
+                  </button>
                 </div>
               ))
             )}
           </div>
-        </div>
+        </aside>
 
         {/* Chat */}
-        <div className="ai-assist-chat">
+        <section className="ai-assist-chat">
           {currentSession ? (
             <>
               <div className="ai-assist-messages">
-                {messages.map((message) => (
+                {messages.map(message => (
                   <MessageBubble key={message.id} message={message} />
                 ))}
                 {sending && (
                   <div className="ai-assist-message-row assistant">
-                    <div className="ai-assist-message-bubble assistant">
-                      <Loader className="w-4 h-4 animate-spin" />
+                    <div className="ai-assist-message-bubble assistant loading">
+                      <Loader className="icon-spin" />
                       <span>AI is thinking...</span>
                     </div>
                   </div>
@@ -262,8 +263,8 @@ const AiAssistPage = () => {
                 <input
                   type="text"
                   value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+                  onChange={e => setInputMessage(e.target.value)}
+                  onKeyPress={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
                   placeholder="Type your message..."
                   className="ai-assist-input"
                   disabled={sending || apiStatus !== 'connected'}
@@ -272,20 +273,21 @@ const AiAssistPage = () => {
                   onClick={sendMessage}
                   disabled={!inputMessage.trim() || sending || apiStatus !== 'connected'}
                   className="ai-assist-send-btn"
+                  aria-label="Send message"
                 >
-                  {sending ? <Loader className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  {sending ? <Loader className="icon-spin" /> : <Send className="icon" />}
                 </button>
               </div>
             </>
           ) : (
-            <div className="ai-assist-empty-state">
-              <MessageCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <div className="ai-assist-empty-state chat-empty">
+              <MessageCircle className="empty-icon" />
               <h3>Select a chat session</h3>
               <p>Choose an existing conversation or start a new one</p>
             </div>
           )}
-        </div>
-      </div>
+        </section>
+      </main>
     </div>
   );
 };

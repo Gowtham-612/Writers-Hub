@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
+import '../Styling/FollowerPage.css';
 
 const FollowersPage = () => {
   const { username } = useParams();
@@ -22,29 +23,37 @@ const FollowersPage = () => {
   }, [username]);
 
   return (
-    <div className="max-w-3xl mx-auto p-4">
-      <div className="mb-4">
-        <Link to={`/profile/${username}`} className="btn btn-secondary">← Back to Profile</Link>
+    <div className="followers-page">
+      <div className="followers-header">
+        <Link to={`/profile/${username}`} className="back-btn">← Back to Profile</Link>
+        <h1 className="page-title">Followers of {username}</h1>
       </div>
-      <h1 className="text-2xl font-semibold mb-4">Followers of {username}</h1>
+
       {loading ? (
-        <div>Loading followers...</div>
+        <div className="loading">Loading followers...</div>
       ) : followers.length === 0 ? (
-        <div>No followers yet.</div>
+        <div className="empty">No followers yet.</div>
       ) : (
-        <div className="space-y-3">
+        <div className="followers-list">
           {followers.map((follower) => (
-            <div key={follower.id} className="flex items-center gap-3 p-3 bg-surface-color rounded-lg">
+            <div key={follower.id} className="follower-card">
               <img
-                src={follower.profile_image || `https://ui-avatars.com/api/?name=${follower.display_name}&background=3b82f6&color=fff`}
-                alt={follower.display_name}
-                className="w-10 h-10 rounded-full"
+                src={
+                  follower.profile_image ||
+                  `https://ui-avatars.com/api/?name=${encodeURIComponent(follower.display_name || follower.username)}&background=3b82f6&color=fff&size=80`
+                }
+                alt={follower.display_name || follower.username}
+                className="follower-avatar"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(follower.display_name || follower.username)}&background=3b82f6&color=fff&size=80`;
+                }}
               />
-              <div className="flex-1">
-                <Link to={`/profile/${follower.username}`} className="font-semibold hover:text-primary-color">
+              <div className="follower-info">
+                <Link to={`/profile/${follower.username}`} className="follower-name">
                   {follower.display_name || follower.username}
                 </Link>
-                {follower.bio && <div className="text-sm text-text-secondary">{follower.bio}</div>}
+                {follower.bio && <p className="follower-bio">{follower.bio}</p>}
               </div>
             </div>
           ))}
@@ -55,5 +64,3 @@ const FollowersPage = () => {
 };
 
 export default FollowersPage;
-
-

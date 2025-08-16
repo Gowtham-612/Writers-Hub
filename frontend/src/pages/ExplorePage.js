@@ -15,7 +15,7 @@ import {
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import DOMPurify from 'dompurify';
-import './ExplorePage.css';
+import '../Styling/ExplorePage.css';
 
 const ExplorePage = () => {
   const { user } = useContext(AuthContext);
@@ -216,10 +216,17 @@ const ExplorePage = () => {
         <div className="post-header">
           <Link to={`/profile/${post.username}`}>
             <img
-              src={post.profile_image || `https://ui-avatars.com/api/?name=${post.display_name}&background=6366f1&color=fff`}
-              alt={post.display_name}
-              className="post-avatar"
-            />
+                src={
+                  post.profile_image ||
+                  `https://ui-avatars.com/api/?name=${encodeURIComponent(post.display_name || post.username)}&background=3b82f6&color=fff&size=80`
+                }
+                alt={post.display_name || post.username}
+                className="user-avatar"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(post.display_name || post.username)}&background=3b82f6&color=fff&size=80`;
+                }}
+              />
           </Link>
           <div className="post-user-info">
             <Link to={`/profile/${post.username}`} className="post-username">
@@ -409,10 +416,17 @@ const ExplorePage = () => {
                 {users.map((u) => (
                   <div key={u.id} className="flex items-center gap-3">
                     <img
-                      src={u.profile_image || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.display_name || u.username)}&background=3b82f6&color=fff`}
-                      alt={u.display_name || u.username}
-                      className="w-10 h-10 rounded-full"
-                    />
+                src={
+                  u.profile_image ||
+                  `https://ui-avatars.com/api/?name=${encodeURIComponent(u.display_name || u.username)}&background=3b82f6&color=fff&size=80`
+                }
+                alt={u.display_name || u.username}
+                className="user-avatar"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(u.display_name || u.username)}&background=3b82f6&color=fff&size=80`;
+                }}
+              />
                     <div className="flex-1">
                       <Link to={`/profile/${u.username}`} className="font-semibold hover:text-primary-color">
                         {u.display_name || u.username}

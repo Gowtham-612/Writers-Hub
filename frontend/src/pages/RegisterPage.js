@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../App';
+import '../Styling/RegisterPage.css'; // Uncomment after creating your CSS file!
 
 function RegisterPage() {
   const navigate = useNavigate();
@@ -45,37 +46,37 @@ function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold mb-2">Create your account</h2>
-          <p className="text-sm text-text-secondary">Sign up with your email or continue with Google.</p>
+    <div className="register-root">
+      <div className="register-card-container">
+        <div className="register-title-group">
+          <h2 className="register-title">Create your account</h2>
+          <p className="register-subtitle">Sign up with your email or continue with Google.</p>
         </div>
 
-        <div className="card p-6 space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-border-color" />
-            <span className="text-xs text-text-secondary">Create with email</span>
-            <div className="flex-1 h-px bg-border-color" />
+        <div className="register-card">
+          <div className="register-divider">
+            <div className="register-line" />
+            <span className="register-divider-label">Create with email</span>
+            <div className="register-line" />
           </div>
 
-          <form className="space-y-4" onSubmit={handleRegister}>
-            <div>
-              <label className="block text-sm font-medium mb-1">Email</label>
+          <form className="register-form" onSubmit={handleRegister}>
+            <div className="register-input-group">
+              <label className="register-label">Email</label>
               <input
                 type="email"
-                className="input w-full"
+                className="register-input"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 required
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Password</label>
+            <div className="register-input-group">
+              <label className="register-label">Password</label>
               <input
                 type="password"
-                className="input w-full"
+                className="register-input"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="At least 8 characters"
@@ -85,22 +86,22 @@ function RegisterPage() {
             </div>
 
             {errorMessage && (
-              <div className="text-sm text-error-color">{errorMessage}</div>
+              <div className="register-error">{errorMessage}</div>
             )}
 
-            <button type="submit" className="btn btn-secondary w-full" disabled={submitting}>
+            <button type="submit" className="register-btn-secondary" disabled={submitting}>
               {submitting ? 'Creating account…' : 'Create account'}
             </button>
           </form>
 
-          <div className="flex items-center gap-3 mt-6">
-            <div className="flex-1 h-px bg-border-color" />
-            <span className="text-xs text-text-secondary">or</span>
-            <div className="flex-1 h-px bg-border-color" />
+          <div className="register-divider register-or">
+            <div className="register-line" />
+            <span className="register-divider-label">or</span>
+            <div className="register-line" />
           </div>
           <button
             onClick={handleGoogleRegister}
-            className="btn btn-primary w-full"
+            className="register-btn-primary"
           >
             Sign up with Google
           </button>
@@ -111,5 +112,3 @@ function RegisterPage() {
 }
 
 export default RegisterPage;
-
-

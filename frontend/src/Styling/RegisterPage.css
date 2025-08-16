@@ -1,0 +1,137 @@
+.register-root {
+  min-height: 100vh;
+  background: #f5f8fb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 14px;
+}
+
+.register-card-container {
+  width: 100%;
+  max-width: 410px;
+  margin: auto;
+}
+
+.register-title-group {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.register-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #22223b;
+}
+
+.register-subtitle {
+  color: #718096;
+  font-size: 0.99rem;
+}
+
+.register-card {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 4px 22px 0 rgba(33, 40, 80, 0.06);
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 17px;
+}
+
+.register-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 10px 0;
+}
+.register-or { margin-top: 24px; margin-bottom: 14px; }
+.register-line {
+  flex: 1;
+  height: 1px;
+  background: #e5e9f2;
+}
+.register-divider-label {
+  font-size: 11px;
+  color: #8c99b6;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 17px;
+}
+.register-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.register-label {
+  font-size: 15px;
+  color: #343e5c;
+  font-weight: 500;
+}
+.register-input {
+  padding: 9px 12px;
+  font-size: 16px;
+  border: 1.3px solid #dbeafe;
+  border-radius: 7px;
+  outline: none;
+  background: #f9fafb;
+  transition: border 0.2s;
+}
+
+.register-input:focus {
+  border-color: #2563eb;
+  background: #fff;
+}
+
+.register-error {
+  color: #e53e3e;
+  font-size: 13.2px;
+  margin-bottom: 3px;
+  text-align: left;
+}
+
+.register-btn-primary,
+.register-btn-secondary {
+  width: 100%;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 7px;
+  padding: 11px 0;
+  border: none;
+  margin-top: 4px;
+  display: inline-block;
+  transition: background .17s;
+}
+.register-btn-primary {
+  background: #2563eb;
+  color: #fff;
+  margin-top: 0;
+}
+.register-btn-primary:hover {
+  background: #1d48ab;
+}
+.register-btn-secondary {
+  background: #e4e7ec;
+  color: #303659;
+}
+.register-btn-secondary:disabled {
+  background: #e4e7ec;
+  color: #a0aec0;
+  cursor: not-allowed;
+}
+.register-btn-secondary:hover:not(:disabled) {
+  background: #dde3ea;
+}
+
+/* Responsive */
+@media (max-width: 550px) {
+  .register-card {
+    padding: 18px 7vw;
+  }
+}

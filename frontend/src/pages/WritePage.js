@@ -6,7 +6,9 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import './WritePage.css';
+import '../Styling/WritePage.css';
+
+
 const WritePage = () => {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -18,14 +20,13 @@ const WritePage = () => {
   const [isPreview, setIsPreview] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Quill editor modules and formats
   const modules = {
     toolbar: [
-      [{ 'header': [1, 2, 3, false] }],
+      [{ header: [1, 2, 3, false] }],
       ['bold', 'italic', 'underline', 'strike'],
-      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-      [{ 'color': [] }, { 'background': [] }],
-      [{ 'align': [] }],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      [{ color: [] }, { background: [] }],
+      [{ align: [] }],
       ['link', 'blockquote', 'code-block'],
       ['clean']
     ],
@@ -52,12 +53,10 @@ const WritePage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     if (!title.trim()) {
       toast.error('Please enter a title');
       return;
     }
-    
     if (!content.trim()) {
       toast.error('Please enter some content');
       return;
@@ -68,7 +67,7 @@ const WritePage = () => {
       const response = await axios.post('/api/posts', {
         title: title.trim(),
         content: content.trim(),
-        tags: tags,
+        tags,
         is_published: isPublished
       });
 
@@ -93,7 +92,7 @@ const WritePage = () => {
       await axios.post('/api/posts', {
         title: title.trim() || 'Untitled',
         content: content.trim() || 'No content yet...',
-        tags: tags,
+        tags,
         is_published: false
       });
 
@@ -108,97 +107,76 @@ const WritePage = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="writepage-container">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-4">
+      <header className="writepage-header">
+        <div className="writepage-back-button-group">
           <button
             onClick={() => navigate('/dashboard')}
-            className="p-2 rounded-lg hover:bg-surface-color transition-colors"
+            className="btn-icon"
+            aria-label="Back to dashboard"
           >
-            <ArrowLeft className="w-5 h-5 text-text-secondary" />
+            <ArrowLeft className="icon" />
           </button>
-          <div>
-            <h1 className="text-3xl font-bold text-text-primary">
-              {isPreview ? 'Preview' : 'Write Post'}
-            </h1>
-            <p className="text-text-secondary">
-              Share your thoughts with the writing community
-            </p>
+          <div className="writepage-title-group">
+            <h1 className="writepage-title">{isPreview ? 'Preview' : 'Write Post'}</h1>
+            <p className="writepage-subtitle">Share your thoughts with the writing community</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setIsPreview(!isPreview)}
-            className="btn btn-secondary"
-          >
-            {isPreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+        <div className="writepage-action-buttons">
+          <button onClick={() => setIsPreview(!isPreview)} className="btn-secondary btn-with-icon">
+            {isPreview ? <EyeOff className="icon-small" /> : <Eye className="icon-small" />}
             {isPreview ? 'Edit' : 'Preview'}
           </button>
-          
-          <button
-            onClick={handleSaveDraft}
-            disabled={loading}
-            className="btn btn-secondary"
-          >
-            <Save className="w-4 h-4" />
+          <button onClick={handleSaveDraft} disabled={loading} className="btn-secondary btn-with-icon">
+            <Save className="icon-small" />
             Save Draft
           </button>
         </div>
-      </div>
+      </header>
 
       {!isPreview ? (
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="writepage-form">
           {/* Title */}
           <div className="form-group">
-            <label className="form-label">Title</label>
+            <label htmlFor="post-title" className="form-label">Title</label>
             <input
+              id="post-title"
               type="text"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={e => setTitle(e.target.value)}
               placeholder="Enter your post title..."
-              className="form-input text-xl font-semibold"
+              className="form-input form-input-title"
               maxLength={200}
+              autoComplete="off"
             />
           </div>
 
           {/* Tags */}
           <div className="form-group">
             <label className="form-label">Tags</label>
-            <div className="flex items-center gap-2 mb-2">
+            <div className="tag-input-group">
               <input
                 type="text"
                 value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
+                onChange={e => setTagInput(e.target.value)}
                 placeholder="Add tags..."
-                className="form-input flex-1"
-                onKeyPress={(e) => e.key === 'Enter' && handleAddTag(e)}
+                className="form-input tag-input"
+                onKeyPress={e => e.key === 'Enter' && handleAddTag(e)}
+                autoComplete="off"
               />
-              <button
-                type="button"
-                onClick={handleAddTag}
-                className="btn btn-primary"
-              >
-                <Tag className="w-4 h-4" />
+              <button type="button" onClick={handleAddTag} className="btn-primary btn-with-icon">
+                <Tag className="icon-small" />
                 Add
               </button>
             </div>
-            
             {tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 ">
-
-                {tags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className="flex items-center gap-1 px-3 py-1 bg-primary-color  text-primary-color rounded-full text-sm ll"
-                  >
+              <div className="tag-list">
+                {tags.map((tag, idx) => (
+                  <span key={idx} className="tag">
                     #{tag}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveTag(tag)}
-                      className="bg-primary-color rounded-fulll hover:text-error-color"
-                    >
+                    <button type="button" onClick={() => handleRemoveTag(tag)} className="tag-remove-btn" aria-label={`Remove tag ${tag}`}>
                       ×
                     </button>
                   </span>
@@ -210,7 +188,7 @@ const WritePage = () => {
           {/* Content Editor */}
           <div className="form-group">
             <label className="form-label">Content</label>
-            <div className="border border-border-color rounded-lg">
+            <div className="quill-wrapper">
               <ReactQuill
                 theme="snow"
                 value={content}
@@ -218,32 +196,29 @@ const WritePage = () => {
                 modules={modules}
                 formats={formats}
                 placeholder="Start writing your post..."
-                style={{ height: '400px' }}
               />
             </div>
           </div>
 
-          {/* Publish Settings */}
-          <div className="form-group">
-            <div className="flex items-center gap-4">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={isPublished}
-                  onChange={(e) => setIsPublished(e.target.checked)}
-                  className="w-4 h-4 text-primary-color"
-                />
-                <span className="text-text-primary">Publish immediately</span>
-              </label>
-            </div>
+          {/* Publish Checkbox */}
+          <div className="form-group checkbox-group">
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={isPublished}
+                onChange={e => setIsPublished(e.target.checked)}
+                className="checkbox-input"
+              />
+              <span className="checkbox-text">Publish immediately</span>
+            </label>
           </div>
 
           {/* Submit Button */}
-          <div className="flex justify-end">
+          <div className="form-submit">
             <button
               type="submit"
               disabled={loading}
-              className="btn btn-primary px-8 py-3"
+              className="btn-primary btn-submit"
             >
               {loading ? 'Publishing...' : (isPublished ? 'Publish Post' : 'Save as Draft')}
             </button>
@@ -251,48 +226,40 @@ const WritePage = () => {
         </form>
       ) : (
         /* Preview Mode */
-        <div className="space-y-6">
-          <div className="card">
-            <h1 className="text-3xl font-bold text-text-primary mb-4">
-              {title || 'Untitled Post'}
-            </h1>
-            
+        <div className="post-preview">
+          <div className="card post-preview-card">
+            <h1 className="post-preview-title">{title || 'Untitled Post'}</h1>
             {tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-4">
-                {tags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className="px-2 py-1 bg-primary-color bg-opacity-10 text-primary-color text-xs rounded-full"
-                  >
+              <div className="tag-list post-preview-tags">
+                {tags.map((tag, idx) => (
+                  <span key={idx} className="tag post-preview-tag">
                     #{tag}
                   </span>
                 ))}
               </div>
             )}
-            
-            <div 
-              className="prose prose-lg max-w-none text-text-primary"
+            <div
+              className="post-preview-content"
               dangerouslySetInnerHTML={{ __html: content }}
             />
-            
-            <div className="mt-6 pt-4 border-t border-border-color">
-              <div className="flex items-center gap-3 text-text-secondary text-sm">
+            <footer className="post-preview-footer">
+              <div className="author-info">
                 <img
                   src={user.profile_image || `https://ui-avatars.com/api/?name=${user.display_name}&background=3b82f6&color=fff`}
                   alt={user.display_name}
-                  className="w-6 h-6 rounded-full"
+                  className="author-avatar"
                 />
-                <span>{user.display_name || user.username}</span>
-                <span>•</span>
-                <span>{new Date().toLocaleDateString()}</span>
+                <span className="author-name">{user.display_name || user.username}</span>
+                <span className="post-separator">•</span>
+                <span className="post-date">{new Date().toLocaleDateString()}</span>
                 {!isPublished && (
                   <>
-                    <span>•</span>
-                    <span className="text-warning-color">Draft</span>
+                    <span className="post-separator">•</span>
+                    <span className="draft-label">Draft</span>
                   </>
                 )}
               </div>
-            </div>
+            </footer>
           </div>
         </div>
       )}

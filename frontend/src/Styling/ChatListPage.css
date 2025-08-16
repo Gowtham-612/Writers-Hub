@@ -41,7 +41,8 @@
 
 .chatlist-search-icon {
   position: absolute;
-  top: 50%;
+  top: 34%;
+  right: 7%;
   left: 10px;
   transform: translateY(-50%);
   color: #9ca3af;
@@ -62,7 +63,7 @@
   background: #3b82f6;
   color: white;
   border: none;
-  padding: 0 15px;
+  padding: 9px 15px;
   border-radius: 8px;
   cursor: pointer;
 }

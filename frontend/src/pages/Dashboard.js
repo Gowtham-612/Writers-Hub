@@ -5,17 +5,17 @@ import { Edit3, Heart, MessageCircle, Share2, MoreVertical, Sparkles, BookOpen, 
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import DOMPurify from 'dompurify';
-import './Dashboard.css';
+import '../Styling/Dashboard.css';
 
 const Dashboard = () => {
   const { user } = useContext(AuthContext);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1); // combined load count
+  const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const navigate = useNavigate();
 
-  // Track pagination and seen IDs to avoid duplicates
+  // Pagination refs to track API pages and duplicate avoidance
   const myPostsPageRef = useRef(1);
   const feedPageRef = useRef(1);
   const globalPageRef = useRef(1);
@@ -25,25 +25,19 @@ const Dashboard = () => {
   const seenIdsRef = useRef(new Set());
 
   useEffect(() => {
-    console.log('[DASHBOARD] User context:', user);
     if (user && user.id) {
       loadInitialPosts();
     } else {
-      console.log('[DASHBOARD] No user found, loading global posts only');
-      // If no user, just load global posts
       loadGlobalPostsOnly();
     }
+    // eslint-disable-next-line
   }, [user]);
 
   const loadGlobalPostsOnly = async () => {
     try {
       setLoading(true);
       const res = await axios.get(`/api/posts?page=1&limit=50`);
-      console.log('[DASHBOARD] Global posts only:', res.data.length, 'posts');
-      
-      // Sort posts by recency
       const sortedPosts = [...res.data].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-      
       setPosts(sortedPosts);
       setHasMore(res.data.length === 50);
     } catch (error) {
@@ -73,71 +67,49 @@ const Dashboard = () => {
       feedPageRef.current = 1;
       globalPageRef.current = 1;
 
-      // Debug: Check database stats
-      try {
-        const debugRes = await axios.get('/api/posts/debug/count');
-        console.log('[DASHBOARD] Database stats:', debugRes.data);
-      } catch (e) {
-        console.error('[DASHBOARD] Error fetching debug info:', e);
-      }
-
       let combined = [];
 
-      // 1. Fetch user's own posts first - get all user posts
+      // Fetch user's posts
       try {
         const myPostsRes = await axios.get(`/api/posts/my-posts?page=1&limit=50`);
-        console.log('[DASHBOARD] My posts response:', myPostsRes.data.length, 'posts');
         combined = appendUnique([], myPostsRes.data);
         hasMoreMyPostsRef.current = myPostsRes.data.length === 50;
-      } catch (e) {
-        console.error('[DASHBOARD] Error fetching my posts:', e);
+      } catch {
         hasMoreMyPostsRef.current = false;
       }
 
-      // 2. Add followed users' posts - get all followed users posts
+      // Fetch followed users' posts
       try {
         const feedRes = await axios.get(`/api/posts/feed?page=1&limit=50`);
-        console.log('[DASHBOARD] Feed response:', feedRes.data.length, 'posts');
         combined = appendUnique(combined, feedRes.data);
         hasMoreFeedRef.current = feedRes.data.length === 50;
-      } catch (e) {
-        console.error('[DASHBOARD] Error fetching feed:', e);
+      } catch {
         hasMoreFeedRef.current = false;
       }
 
-      // 3. Add all global posts
+      // Fetch global posts
       try {
         const globalRes = await axios.get(`/api/posts?page=1&limit=50`);
-        console.log('[DASHBOARD] Global posts response:', globalRes.data.length, 'posts');
         combined = appendUnique(combined, globalRes.data);
         hasMoreGlobalRef.current = globalRes.data.length === 50;
-      } catch (e) {
-        console.error('[DASHBOARD] Error fetching global posts:', e);
+      } catch {
         hasMoreGlobalRef.current = false;
       }
 
-      console.log('[DASHBOARD] Final combined posts:', combined.length, 'posts');
-      
-      // If we still don't have any posts, fetch global posts as fallback
       if (combined.length === 0) {
         try {
           const fallbackRes = await axios.get(`/api/posts?page=1&limit=50`);
-          console.log('[DASHBOARD] Fallback global posts:', fallbackRes.data.length, 'posts');
           combined = fallbackRes.data;
           hasMoreGlobalRef.current = fallbackRes.data.length === 50;
-        } catch (e) {
-          console.error('[DASHBOARD] Error fetching fallback posts:', e);
-        }
+        } catch {}
       }
-      
-      // Sort posts by recency
+
       combined.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-      
+
       setPosts(combined);
       setPage(1);
       setHasMore(hasMoreMyPostsRef.current || hasMoreFeedRef.current || hasMoreGlobalRef.current);
     } catch (error) {
-      console.error('Error loading dashboard posts:', error);
       toast.error('Failed to load posts');
     } finally {
       setLoading(false);
@@ -146,58 +118,40 @@ const Dashboard = () => {
 
   const fetchMoreCombined = async () => {
     try {
-      const newPosts = [];
+      let newPosts = [];
 
-      // 1. Try next user's posts page first
       if (hasMoreMyPostsRef.current) {
         try {
-          const nextMyPostsPage = myPostsPageRef.current + 1;
-          const myPostsRes = await axios.get(`/api/posts/my-posts?page=${nextMyPostsPage}&limit=50`);
-          hasMoreMyPostsRef.current = myPostsRes.data.length === 50;
-          myPostsPageRef.current = nextMyPostsPage;
-          for (const p of myPostsRes.data) {
-            if (!seenIdsRef.current.has(p.id)) {
-              seenIdsRef.current.add(p.id);
-              newPosts.push(p);
-            }
-          }
-        } catch (e) {
+          const nextPage = myPostsPageRef.current + 1;
+          const res = await axios.get(`/api/posts/my-posts?page=${nextPage}&limit=50`);
+          hasMoreMyPostsRef.current = res.data.length === 50;
+          myPostsPageRef.current = nextPage;
+          newPosts.push(...res.data.filter(p => !seenIdsRef.current.has(p.id) && seenIdsRef.current.add(p.id)));
+        } catch {
           hasMoreMyPostsRef.current = false;
         }
       }
 
-      // 2. Try next feed page
       if (hasMoreFeedRef.current) {
         try {
-          const nextFeedPage = feedPageRef.current + 1;
-          const feedRes = await axios.get(`/api/posts/feed?page=${nextFeedPage}&limit=50`);
-          hasMoreFeedRef.current = feedRes.data.length === 50;
-          feedPageRef.current = nextFeedPage;
-          for (const p of feedRes.data) {
-            if (!seenIdsRef.current.has(p.id)) {
-              seenIdsRef.current.add(p.id);
-              newPosts.push(p);
-            }
-          }
-        } catch (e) {
+          const nextPage = feedPageRef.current + 1;
+          const res = await axios.get(`/api/posts/feed?page=${nextPage}&limit=50`);
+          hasMoreFeedRef.current = res.data.length === 50;
+          feedPageRef.current = nextPage;
+          newPosts.push(...res.data.filter(p => !seenIdsRef.current.has(p.id) && seenIdsRef.current.add(p.id)));
+        } catch {
           hasMoreFeedRef.current = false;
         }
       }
 
-      // 3. Then add next global page
       if (hasMoreGlobalRef.current) {
         try {
-          const nextGlobalPage = globalPageRef.current + 1;
-          const globalRes = await axios.get(`/api/posts?page=${nextGlobalPage}&limit=50`);
-          hasMoreGlobalRef.current = globalRes.data.length === 50;
-          globalPageRef.current = nextGlobalPage;
-          for (const p of globalRes.data) {
-            if (!seenIdsRef.current.has(p.id)) {
-              seenIdsRef.current.add(p.id);
-              newPosts.push(p);
-            }
-          }
-        } catch (e) {
+          const nextPage = globalPageRef.current + 1;
+          const res = await axios.get(`/api/posts?page=${nextPage}&limit=50`);
+          hasMoreGlobalRef.current = res.data.length === 50;
+          globalPageRef.current = nextPage;
+          newPosts.push(...res.data.filter(p => !seenIdsRef.current.has(p.id) && seenIdsRef.current.add(p.id)));
+        } catch {
           hasMoreGlobalRef.current = false;
         }
       }
@@ -207,13 +161,12 @@ const Dashboard = () => {
         return;
       }
 
-      // Sort new posts by recency
       newPosts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
       setPosts(prev => prev.concat(newPosts));
       setPage(prev => prev + 1);
       setHasMore(hasMoreMyPostsRef.current || hasMoreFeedRef.current || hasMoreGlobalRef.current);
-    } catch (error) {
+    } catch {
       toast.error('Failed to load more posts');
     }
   };
@@ -247,9 +200,7 @@ const Dashboard = () => {
     return date.toLocaleDateString();
   };
 
-  const PostCard = ({ post }) => (
-    <PostCardInner post={post} />
-  );
+  const PostCard = ({ post }) => <PostCardInner post={post} />;
 
   const PostCardInner = ({ post }) => {
     const [isExpanded, setIsExpanded] = useState(false);
@@ -277,15 +228,11 @@ const Dashboard = () => {
         const limit = 10;
         const res = await axios.get(`/api/posts/${post.id}/comments?page=${nextPage}&limit=${limit}`);
         const newComments = res.data || [];
-        if (nextPage === 1) {
-          setComments(newComments);
-        } else {
-          setComments(prev => [...prev, ...newComments]);
-        }
+        if (nextPage === 1) setComments(newComments);
+        else setComments(prev => [...prev, ...newComments]);
         setCommentsHasMore(newComments.length === limit);
         setCommentsPage(nextPage);
-      } catch (e) {
-        console.error('Failed to load comments', e);
+      } catch {
         toast.error('Failed to load comments');
       } finally {
         setCommentsLoading(false);
@@ -295,9 +242,7 @@ const Dashboard = () => {
     const toggleComments = () => {
       setShowCommentBox(prev => {
         const opening = !prev;
-        if (opening && comments.length === 0) {
-          fetchComments(1);
-        }
+        if (opening && comments.length === 0) fetchComments(1);
         return opening;
       });
     };
@@ -310,14 +255,10 @@ const Dashboard = () => {
         await axios.post(`/api/posts/${post.id}/comments`, { content });
         setCommentText('');
         setShowCommentBox(false);
-        setPosts(prev => prev.map(p => (
-          p.id === post.id ? { ...p, comments_count: (Number(p.comments_count) || 0) + 1 } : p
-        )));
+        setPosts(prev => prev.map(p => (p.id === post.id ? { ...p, comments_count: (Number(p.comments_count) || 0) + 1 } : p)));
         toast.success('Comment added');
-        // Reload first page of comments to include the new one
         fetchComments(1);
-      } catch (error) {
-        console.error('Failed to add comment', error);
+      } catch {
         toast.error('Failed to add comment');
       } finally {
         setIsSubmittingComment(false);
@@ -329,9 +270,16 @@ const Dashboard = () => {
         <div className="post-header">
           <Link to={`/profile/${post.username}`}>
             <img
-              src={post.profile_image || `https://ui-avatars.com/api/?name=${post.display_name}&background=6366f1&color=fff`}
-              alt={post.display_name}
-              className="post-avatar"
+              src={
+                post.profile_image ||
+                `https://ui-avatars.com/api/?name=${encodeURIComponent(post.display_name || post.username)}&background=3b82f6&color=fff&size=80`
+              }
+              alt={post.display_name || post.username}
+              className="user-avatar"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(post.display_name || post.username)}&background=3b82f6&color=fff&size=80`;
+              }}
             />
           </Link>
           <div className="post-user-info">
@@ -340,7 +288,7 @@ const Dashboard = () => {
             </Link>
             <span className="post-time">{formatDate(post.created_at)}</span>
           </div>
-          <button className="post-options">
+          <button className="post-options" aria-label="Post options">
             <MoreVertical size={16} />
           </button>
         </div>
@@ -351,38 +299,25 @@ const Dashboard = () => {
 
         {isExpanded ? (
           <div
-            className={`post-content expanded`}
+            className="post-content expanded"
             dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content || '') }}
           />
         ) : (
-          <div className="post-content">
-            {plainText.length > 250 ? `${plainText.slice(0, 250)}…` : plainText}
-          </div>
+          <div className="post-content">{plainText.length > 250 ? `${plainText.slice(0, 250)}…` : plainText}</div>
         )}
 
         {isTruncatable && (
-          <button
-            className="view-more-btn"
-            onClick={() => setIsExpanded(prev => !prev)}
-            aria-expanded={isExpanded}
-          >
+          <button className="view-more-btn" onClick={() => setIsExpanded(prev => !prev)} aria-expanded={isExpanded}>
             {isExpanded ? 'Show less' : 'View more'}
           </button>
         )}
 
         {post.tags?.length > 0 && (
-          <div className="post-tags">
-            {post.tags.map((tag, i) => (
-              <span key={i}>#{tag}</span>
-            ))}
-          </div>
+          <div className="post-tags">{post.tags.map((tag, i) => <span key={i}>#{tag}</span>)}</div>
         )}
 
         <div className="post-actions">
-          <button
-            onClick={() => handleLike(post.id, post.is_liked)}
-            className={post.is_liked ? 'liked' : ''}
-          >
+          <button onClick={() => handleLike(post.id, post.is_liked)} className={post.is_liked ? 'liked' : ''}>
             <Heart size={18} /> {Number(post.likes_count) || 0}
           </button>
           <button onClick={toggleComments}>
@@ -398,36 +333,28 @@ const Dashboard = () => {
             <div className="comment-form">
               <textarea
                 value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
+                onChange={e => setCommentText(e.target.value)}
                 placeholder="Write a comment..."
                 rows={3}
               />
               <div className="comment-actions">
-                <button
-                  className="btn-primary"
-                  onClick={submitComment}
-                  disabled={isSubmittingComment || commentText.trim().length === 0}
-                >
+                <button className="btn-primary" onClick={submitComment} disabled={isSubmittingComment || commentText.trim().length === 0}>
                   {isSubmittingComment ? 'Posting...' : 'Post Comment'}
                 </button>
-                <button
-                  className="btn-secondary"
-                  onClick={() => setShowCommentBox(false)}
-                  disabled={isSubmittingComment}
-                >
+                <button className="btn-secondary" onClick={() => setShowCommentBox(false)} disabled={isSubmittingComment}>
                   Cancel
                 </button>
               </div>
             </div>
 
             <div className="comments-list">
-              {comments.map((c) => (
+              {comments.map(c => (
                 <div key={c.id} className="comment-item">
                   <img
                     className="comment-avatar"
                     src={c.profile_image || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.display_name || c.username)}&background=6366f1&color=fff&size=64`}
                     alt={c.display_name || c.username}
-                    onError={(e) => {
+                    onError={e => {
                       e.currentTarget.onerror = null;
                       e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(c.display_name || c.username)}&background=6366f1&color=fff&size=64`;
                     }}
@@ -441,14 +368,10 @@ const Dashboard = () => {
                   </div>
                 </div>
               ))}
-
               {commentsLoading && <div className="comments-loading">Loading comments...</div>}
 
               {!commentsLoading && commentsHasMore && (
-                <button
-                  className="btn-secondary load-more-comments"
-                  onClick={() => fetchComments(commentsPage + 1)}
-                >
+                <button className="btn-secondary load-more-comments" onClick={() => fetchComments(commentsPage + 1)}>
                   Load more comments
                 </button>
               )}
@@ -489,11 +412,13 @@ const Dashboard = () => {
             </div>
           ) : (
             <>
-              {posts.map((post) => (
+              {posts.map(post => (
                 <PostCard key={post.id} post={post} />
               ))}
               {hasMore && (
-                <button onClick={fetchMoreCombined} className="btn-secondary">Load More</button>
+                <button onClick={fetchMoreCombined} className="btn-secondary">
+                  Load More
+                </button>
               )}
             </>
           )}
@@ -502,14 +427,16 @@ const Dashboard = () => {
         <aside className="sidebar">
           <div className="card">
             <h3>Quick Actions</h3>
-            <Link to="/write">✏️ Write</Link>
-            <Link to="/ai-assist">🤖 AI Assistant</Link>
+            <Link to="/write" className="quick-action-link">✏️ Write</Link>
+            <Link to="/ai-assist" className="quick-action-link">🤖 AI Assistant</Link>
           </div>
           <div className="card">
             <h3>Trending Tags</h3>
+            <div className="trending-tags">
             {["fiction", "poetry", "writing", "creative", "story"].map(tag => (
-              <Link key={tag} to={`/explore?tag=${tag}`}>#{tag}</Link>
+              <Link key={tag} to={`/explore?tag=${tag}`} className="tag-link">#{tag}</Link>
             ))}
+            </div>
           </div>
         </aside>
       </div>

@@ -2,7 +2,7 @@ import React, { useState, useContext, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../App';
-import './LandingPage.css';
+import '../Styling/LandingPage.css';
 
 const LandingPage = () => {
   const navigate = useNavigate();

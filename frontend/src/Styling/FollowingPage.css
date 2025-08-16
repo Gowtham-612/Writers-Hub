@@ -1,0 +1,145 @@
+/* Page container */
+.following-page {
+  max-width: 700px;
+  margin: 40px auto;
+  padding: 20px;
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(to bottom right, #f9fafb, #f3f4f6);
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+}
+
+/* Header */
+.following-header {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 25px;
+  text-align: center;
+}
+
+.back-btn {
+  align-self: flex-start;
+  padding: 8px 14px;
+  font-size: 14px;
+  color: #2563eb;
+  background: #eef2ff;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.page-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #111827;
+  background: linear-gradient(90deg, #2563eb, #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Loading / Empty state */
+.loading,
+.empty {
+  text-align: center;
+  padding: 20px;
+  color: #6b7280;
+  font-size: 15px;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 1px dashed #d1d5db;
+}
+
+/* Following list */
+.following-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Each following card */
+.following-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 14px 18px;
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+.following-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+  border-color: #c7d2fe;
+}
+
+/* Avatar */
+.following-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #e0e7ff;
+  transition: border-color 0.3s ease;
+}
+
+.following-card:hover .following-avatar {
+  border-color: #6366f1;
+}
+
+/* Info section */
+.following-info {
+  flex: 1;
+}
+
+.following-name {
+  font-size: 17px;
+  font-weight: 600;
+  color: #1f2937;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.following-name:hover {
+  color: #2563eb;
+}
+
+.following-bio {
+  font-size: 14px;
+  color: #6b7280;
+  margin-top: 3px;
+  line-height: 1.4;
+}
+
+/* Responsive tweaks */
+@media (max-width: 600px) {
+  .following-page {
+    margin: 20px;
+    padding: 16px;
+  }
+
+  .page-title {
+    font-size: 22px;
+  }
+
+  .following-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .following-avatar {
+    width: 60px;
+    height: 60px;
+  }
+}

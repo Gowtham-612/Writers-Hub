@@ -10,11 +10,12 @@ import {
   Bell,
   Shield,
   Trash2,
-  ArrowLeft,
   RefreshCw
 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import '../Styling/SettingsPage.css';
+
 
 const SettingsPage = () => {
   const { user, logout } = useContext(AuthContext);
@@ -32,24 +33,22 @@ const SettingsPage = () => {
     theme_preference: user?.theme_preference || 'light'
   });
 
-  // Fetch user stats on component mount
   useEffect(() => {
     if (user?.username) {
       fetchUserStats();
     }
+    // eslint-disable-next-line
   }, [user?.username]);
 
   const fetchUserStats = async (showToast = false) => {
     try {
       setStatsLoading(true);
       const response = await axios.get(`/api/users/profile/${user.username}`);
-      
       setStats({
         posts: response.data.posts_count || 0,
         followers: response.data.followers_count || 0,
         following: response.data.following_count || 0
       });
-
       if (showToast) {
         toast.success('Stats updated!');
       }
@@ -58,7 +57,6 @@ const SettingsPage = () => {
       if (showToast) {
         toast.error('Failed to update stats');
       }
-      // Keep default values if fetch fails
     } finally {
       setStatsLoading(false);
     }
@@ -74,19 +72,13 @@ const SettingsPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     try {
       setLoading(true);
-      const response = await axios.put('/api/users/profile', formData);
-      
-      // Update theme if changed
+      await axios.put('/api/users/profile', formData);
       if (formData.theme_preference !== theme) {
         toggleTheme();
       }
-      
-      // Refresh stats after profile update
       await fetchUserStats();
-      
       toast.success('Profile updated successfully!');
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -110,43 +102,49 @@ const SettingsPage = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="settings-container">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-text-primary mb-2">Settings</h1>
-        <p className="text-text-secondary">
-          Manage your profile and preferences
-        </p>
-      </div>
+      <header className="settings-header">
+        <h1 className="settings-title">Settings</h1>
+        <p className="settings-subtitle">Manage your profile and preferences</p>
+      </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="settings-grid">
         {/* Main Settings */}
-        <div className="lg:col-span-2 space-y-6">
+        <section className="settings-main">
           {/* Profile Settings */}
-          <div className="card">
-            <div className="flex items-center gap-2 mb-6">
-              <User className="w-5 h-5 text-primary-color" />
-              <h2 className="text-xl font-semibold text-text-primary">Profile Settings</h2>
+          <div className="settings-card">
+            <div className="settings-section-header">
+              <User className="icon-primary" />
+              <h2 className="section-title">Profile Settings</h2>
             </div>
-            
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="flex items-center gap-4 mb-6">
+
+            <form onSubmit={handleSubmit} className="settings-form">
+              <div className="profile-info-group">
                 <img
-                  src={user?.profile_image || `https://ui-avatars.com/api/?name=${user?.display_name}&background=3b82f6&color=fff&size=80`}
-                  alt={user?.display_name}
-                  className="w-20 h-20 rounded-full"
+                  src={
+                    user?.profile_image ||
+                    `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.display_name || user?.username)}&background=3b82f6&color=fff&size=80`
+                  }
+                  alt={user?.display_name || user?.username}
+                  className="profile-avatar"
+                  onError={e => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.display_name || user?.username)}&background=3b82f6&color=fff&size=80`;
+                  }}
                 />
-                <div>
-                  <p className="text-text-primary font-medium">{user?.display_name || user?.username}</p>
-                  <p className="text-text-secondary text-sm">@{user?.username}</p>
-                  <p className="text-text-secondary text-sm">{user?.email}</p>
+                <div className="profile-names">
+                  <p className="profile-display-name">{user?.display_name || user?.username}</p>
+                  <p className="profile-username">@{user?.username}</p>
+                  <p className="profile-email">{user?.email}</p>
                 </div>
               </div>
 
               <div className="form-group">
-                <label className="form-label">Display Name</label>
+                <label htmlFor="display_name" className="form-label">Display Name</label>
                 <input
                   type="text"
+                  id="display_name"
                   name="display_name"
                   value={formData.display_name}
                   onChange={handleInputChange}
@@ -157,8 +155,9 @@ const SettingsPage = () => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Bio</label>
+                <label htmlFor="bio" className="form-label">Bio</label>
                 <textarea
+                  id="bio"
                   name="bio"
                   value={formData.bio}
                   onChange={handleInputChange}
@@ -167,25 +166,19 @@ const SettingsPage = () => {
                   rows={4}
                   maxLength={500}
                 />
-                <p className="text-text-secondary text-sm mt-1">
-                  {formData.bio.length}/500 characters
-                </p>
+                <p className="bio-char-count">{formData.bio.length}/500 characters</p>
               </div>
 
-              <div className="flex justify-end">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="btn btn-primary"
-                >
+              <div className="form-submit">
+                <button type="submit" disabled={loading} className="btn-primary">
                   {loading ? (
                     <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <div className="spinner"></div>
                       Saving...
                     </>
                   ) : (
                     <>
-                      <Save className="w-4 h-4" />
+                      <Save className="icon-small" />
                       Save Changes
                     </>
                   )}
@@ -195,56 +188,51 @@ const SettingsPage = () => {
           </div>
 
           {/* Theme Settings */}
-          <div className="card">
-            <div className="flex items-center gap-2 mb-6">
-              <Palette className="w-5 h-5 text-primary-color" />
-              <h2 className="text-xl font-semibold text-text-primary">Appearance</h2>
+          <div className="settings-card">
+            <div className="settings-section-header">
+              <Palette className="icon-primary" />
+              <h2 className="section-title">Appearance</h2>
             </div>
-            
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-surface-color rounded-lg">
+
+            <div className="theme-settings">
+              <div className="theme-selection">
                 <div>
-                  <h3 className="font-medium text-text-primary">Theme</h3>
-                  <p className="text-text-secondary text-sm">
-                    Choose between light and dark themes
-                  </p>
+                  <h3 className="theme-title">Theme</h3>
+                  <p className="theme-description">Choose between light and dark themes</p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="theme-buttons">
                   <button
                     onClick={() => setFormData(prev => ({ ...prev, theme_preference: 'light' }))}
-                    className={`p-2 rounded-lg transition-colors ${
-                      formData.theme_preference === 'light'
-                        ? 'bg-primary-color text-white'
-                        : 'bg-background-color text-text-secondary hover:text-text-primary'
-                    }`}
+                    className={
+                      "theme-btn " +
+                      (formData.theme_preference === 'light' ? 'active' : 'inactive')
+                    }
+                    aria-label="Light theme"
                   >
-                    <Sun className="w-4 h-4" />
+                    <Sun className="icon-small" />
                   </button>
                   <button
                     onClick={() => setFormData(prev => ({ ...prev, theme_preference: 'dark' }))}
-                    className={`p-2 rounded-lg transition-colors ${
-                      formData.theme_preference === 'dark'
-                        ? 'bg-primary-color text-white'
-                        : 'bg-background-color text-text-secondary hover:text-text-primary'
-                    }`}
+                    className={
+                      "theme-btn " +
+                      (formData.theme_preference === 'dark' ? 'active' : 'inactive')
+                    }
+                    aria-label="Dark theme"
                   >
-                    <Moon className="w-4 h-4" />
+                    <Moon className="icon-small" />
                   </button>
                 </div>
               </div>
 
-              <div className="flex justify-end">
+              <div className="form-submit form-submit-right">
                 <button
                   onClick={() => {
                     toggleTheme();
-                    setFormData(prev => ({ 
-                      ...prev, 
-                      theme_preference: theme === 'light' ? 'dark' : 'light' 
-                    }));
+                    setFormData(prev => ({ ...prev, theme_preference: theme === 'light' ? 'dark' : 'light' }));
                   }}
-                  className="btn btn-secondary"
+                  className="btn-secondary"
                 >
-                  <Palette className="w-4 h-4" />
+                  <Palette className="icon-small" />
                   Apply Theme
                 </button>
               </div>
@@ -252,181 +240,156 @@ const SettingsPage = () => {
           </div>
 
           {/* Account Settings */}
-          <div className="card">
-            <div className="flex items-center gap-2 mb-6">
-              <Shield className="w-5 h-5 text-primary-color" />
-              <h2 className="text-xl font-semibold text-text-primary">Account</h2>
+          <div className="settings-card">
+            <div className="settings-section-header">
+              <Shield className="icon-primary" />
+              <h2 className="section-title">Account</h2>
             </div>
-            
-            <div className="space-y-4">
-              <div className="p-4 bg-surface-color rounded-lg">
-                <h3 className="font-medium text-text-primary mb-2">Authentication</h3>
-                <p className="text-text-secondary text-sm mb-3">
-                  You're signed in with Google OAuth
-                </p>
-                <div className="flex items-center gap-2 text-sm text-text-secondary">
-                  <div className="w-2 h-2 bg-success-color rounded-full"></div>
+
+            <div className="account-info-group">
+              <div className="auth-info">
+                <h3 className="account-subtitle">Authentication</h3>
+                <p className="account-text">You're signed in with Google OAuth</p>
+                <div className="connection-status">
+                  <div className="status-dot"></div>
                   <span>Connected to Google</span>
                 </div>
               </div>
 
-              <div className="p-4 bg-surface-color rounded-lg">
-                <h3 className="font-medium text-text-primary mb-2">Account Information</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-text-secondary">Username:</span>
-                    <span className="text-text-primary">@{user?.username}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-text-secondary">Email:</span>
-                    <span className="text-text-primary">{user?.email}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-text-secondary">Member since:</span>
-                    <span className="text-text-primary">
-                      {new Date(user?.created_at).toLocaleDateString()}
-                    </span>
-                  </div>
+              <div className="account-info">
+                <h3 className="account-subtitle">Account Information</h3>
+                <div className="account-detail">
+                  <span className="account-label">Username:</span>
+                  <span className="account-value">@{user?.username}</span>
+                </div>
+                <div className="account-detail">
+                  <span className="account-label">Email:</span>
+                  <span className="account-value">{user?.email}</span>
+                </div>
+                <div className="account-detail">
+                  <span className="account-label">Member since:</span>
+                  <span className="account-value">{new Date(user?.created_at).toLocaleDateString()}</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Danger Zone */}
-          <div className="card border-error-color border-2">
-            <div className="flex items-center gap-2 mb-6">
-              <Trash2 className="w-5 h-5 text-error-color" />
-              <h2 className="text-xl font-semibold text-error-color">Danger Zone</h2>
+          <div className="settings-card danger-zone">
+            <div className="settings-section-header">
+              <Trash2 className="icon-danger" />
+              <h2 className="section-title danger-text">Danger Zone</h2>
             </div>
-            
-            <div className="space-y-4">
-              <div className="p-4 bg-error-color bg-opacity-10 rounded-lg">
-                <h3 className="font-medium text-text-primary mb-2">Delete Account</h3>
-                <p className="text-text-secondary text-sm mb-4">
-                  Once you delete your account, there is no going back. Please be certain.
-                </p>
-                <button
-                  onClick={handleDeleteAccount}
-                  className="btn btn-danger"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Delete Account
-                </button>
-              </div>
+
+            <div className="danger-zone-content">
+              <h3 className="danger-zone-title">Delete Account</h3>
+              <p className="danger-zone-text">
+                Once you delete your account, there is no going back. Please be certain.
+              </p>
+              <button onClick={handleDeleteAccount} className="btn-danger">
+                <Trash2 className="icon-small" />
+                Delete Account
+              </button>
             </div>
           </div>
-        </div>
+        </section>
 
         {/* Sidebar */}
-        <div className="space-y-6">
+        <aside className="settings-sidebar">
           {/* Quick Stats */}
-          <div className="card">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-text-primary">Your Stats</h3>
+          <div className="settings-card sidebar-card">
+            <div className="sidebar-header">
+              <h3 className="sidebar-title">Your Stats</h3>
               <button
                 onClick={() => fetchUserStats(true)}
                 disabled={statsLoading}
-                className="p-1 rounded-lg hover:bg-surface-color transition-colors disabled:opacity-50"
+                className="icon-button"
                 title="Refresh stats"
+                aria-label="Refresh stats"
               >
-                <RefreshCw className={`w-4 h-4 text-text-secondary ${statsLoading ? 'animate-spin' : ''}`} />
+                <RefreshCw className={"icon-small " + (statsLoading ? 'spin' : '')} />
               </button>
             </div>
             {statsLoading ? (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-text-secondary">Posts</span>
-                  <div className="w-8 h-4 bg-surface-color rounded animate-pulse"></div>
+              <div className="stats-loading">
+                <div className="stats-row">
+                  <span>Posts</span>
+                  <div className="stats-pulse-bar"></div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-text-secondary">Followers</span>
-                  <div className="w-8 h-4 bg-surface-color rounded animate-pulse"></div>
+                <div className="stats-row">
+                  <span>Followers</span>
+                  <div className="stats-pulse-bar"></div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-text-secondary">Following</span>
-                  <div className="w-8 h-4 bg-surface-color rounded animate-pulse"></div>
+                <div className="stats-row">
+                  <span>Following</span>
+                  <div className="stats-pulse-bar"></div>
                 </div>
               </div>
             ) : (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-text-secondary">Posts</span>
-                  <span className="font-semibold text-text-primary">{stats.posts}</span>
+              <div className="stats-info">
+                <div className="stats-row">
+                  <span>Posts</span>
+                  <span className="stats-value">{stats.posts}</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-text-secondary">Followers</span>
-                  <span className="font-semibold text-text-primary">{stats.followers}</span>
+                <div className="stats-row">
+                  <span>Followers</span>
+                  <span className="stats-value">{stats.followers}</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-text-secondary">Following</span>
-                  <span className="font-semibold text-text-primary">{stats.following}</span>
+                <div className="stats-row">
+                  <span>Following</span>
+                  <span className="stats-value">{stats.following}</span>
                 </div>
               </div>
             )}
           </div>
 
           {/* Help & Support */}
-          <div className="card">
-            <h3 className="text-lg font-semibold text-text-primary mb-4">Help & Support</h3>
-            <div className="space-y-3">
-              <a
-                href="#"
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-color transition-colors"
-              >
-                <div className="w-8 h-8 bg-primary-color rounded-lg flex items-center justify-center">
-                  <Edit3 className="w-4 h-4 text-white" />
+          <div className="settings-card sidebar-card">
+            <h3 className="sidebar-title">Help & Support</h3>
+            <div className="help-links">
+              <a href="#" className="help-link">
+                <div className="help-icon bg-primary">
+                  <Edit3 className="icon-small icon-white" />
                 </div>
-                <span className="text-text-primary">Writing Guide</span>
+                <span>Writing Guide</span>
               </a>
-              
-              <a
-                href="#"
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-color transition-colors"
-              >
-                <div className="w-8 h-8 bg-warning-color rounded-lg flex items-center justify-center">
-                  <Bell className="w-4 h-4 text-white" />
+              <a href="#" className="help-link">
+                <div className="help-icon bg-warning">
+                  <Bell className="icon-small icon-white" />
                 </div>
-                <span className="text-text-primary">AI Assistant Help</span>
+                <span>AI Assistant Help</span>
               </a>
-              
-              <a
-                href="#"
-                className="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-color transition-colors"
-              >
-                <div className="w-8 h-8 bg-success-color rounded-lg flex items-center justify-center">
-                  <User className="w-4 h-4 text-white" />
+              <a href="#" className="help-link">
+                <div className="help-icon bg-success">
+                  <User className="icon-small icon-white" />
                 </div>
-                <span className="text-text-primary">Community Guidelines</span>
+                <span>Community Guidelines</span>
               </a>
             </div>
           </div>
 
           {/* Current Theme Preview */}
-          <div className="card">
-            <h3 className="text-lg font-semibold text-text-primary mb-4">Theme Preview</h3>
-            <div className={`p-4 rounded-lg border ${
-              theme === 'dark' 
-                ? 'bg-gray-800 border-gray-600' 
-                : 'bg-gray-100 border-gray-200'
-            }`}>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-8 h-8 bg-primary-color rounded-full"></div>
-                <div>
-                  <div className="h-3 bg-text-primary rounded w-20 mb-1"></div>
-                  <div className="h-2 bg-text-secondary rounded w-16"></div>
+          <div className="settings-card sidebar-card">
+            <h3 className="sidebar-title">Theme Preview</h3>
+            <div className={"theme-preview " + (theme === 'dark' ? 'theme-dark' : 'theme-light')}>
+              <div className="theme-preview-header">
+                <div className="theme-preview-avatar"></div>
+                <div className="theme-preview-text">
+                  <div className="theme-preview-line short"></div>
+                  <div className="theme-preview-line smaller"></div>
                 </div>
               </div>
-              <div className="space-y-2">
-                <div className="h-2 bg-text-primary rounded"></div>
-                <div className="h-2 bg-text-secondary rounded w-3/4"></div>
-                <div className="h-2 bg-text-secondary rounded w-1/2"></div>
+              <div className="theme-preview-lines">
+                <div className="theme-preview-line"></div>
+                <div className="theme-preview-line short"></div>
+                <div className="theme-preview-line smaller"></div>
               </div>
             </div>
-            <p className="text-text-secondary text-sm mt-2 text-center">
+            <p className="theme-current-label">
               Current: {theme === 'dark' ? 'Dark' : 'Light'} theme
             </p>
           </div>
-        </div>
+        </aside>
       </div>
     </div>
   );
