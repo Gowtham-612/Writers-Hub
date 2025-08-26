@@ -46,7 +46,7 @@ A full-stack social media platform designed specifically for writers, featuring 
 - **Axios** - API client
 
 ### AI & External Services
-- **DeepSeek AI** - Advanced language model for writing assistance
+- **openrouter** - Advanced language model for writing assistance
 - **Google OAuth** - Authentication
 - **UI Avatars** - Default profile images
 
@@ -123,7 +123,7 @@ SESSION_SECRET=your_session_secret_key
 JWT_SECRET=your_jwt_secret_key
 
 # DeepSeek AI Configuration
-DEEPSEEK_API_KEY=your_deepseek_api_key_here
+OPENROUTER_API_KEY=your_deepseek_api_key_here
 
 
 ```
@@ -137,12 +137,12 @@ DEEPSEEK_API_KEY=your_deepseek_api_key_here
 5. Add authorized redirect URI: `http://localhost:5000/auth/google/callback`
 6. Copy Client ID and Client Secret to your `.env` file
 
-### 5. Set up DeepSeek AI (Required for AI features)
+### 5. Set up  AI (Required for AI features)
 
-1. Get a DeepSeek API key from [DeepSeek Console](https://platform.deepseek.com/)
+1. Get a OPENROUTER API key 
 2. Add your API key to the `.env` file:
 ```env
-DEEPSEEK_API_KEY=your_api_key_here
+OPENROUTER_API_KEY=your_api_key_here
 ```
 
 ### 6. Initialize Database
@@ -172,97 +172,6 @@ The application will be available at:
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:5000
 
-## 📁 Project Structure
-
-```
-writers-hub/
-├── backend/
-│   ├── config/
-│   │   ├── database.js
-│   │   └── passport.js
-│   ├── middleware/
-│   │   └── auth.js
-│   ├── routes/
-│   │   ├── auth.js
-│   │   ├── users.js
-│   │   ├── posts.js
-│   │   ├── chat.js
-│   │   └── ai.js
-│   ├── socket/
-│   │   └── socketHandlers.js
-│   ├── scripts/
-│   │   └── setupDatabase.js
-│   ├── server.js
-│   └── package.json
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   │   └── Navbar.js
-│   │   ├── pages/
-│   │   │   ├── LandingPage.js
-│   │   │   ├── LoginPage.js
-│   │   │   ├── Dashboard.js
-│   │   │   ├── WritePage.js
-│   │   │   ├── AiAssistPage.js
-│   │   │   ├── PostPage.js
-│   │   │   ├── ProfilePage.js
-│   │   │   ├── ChatPage.js
-│   │   │   ├── ExplorePage.js
-│   │   │   └── SettingsPage.js
-│   │   ├── App.js
-│   │   └── index.css
-│   └── package.json
-├── package.json
-└── README.md
-```
-
-## 🔧 API Endpoints
-
-### Authentication
-- `GET /api/auth/google` - Google OAuth login
-- `GET /api/auth/google/callback` - OAuth callback
-- `GET /api/auth/logout` - Logout
-- `GET /api/auth/me` - Get current user
-- `GET /api/auth/status` - Check auth status
-
-### Users
-- `GET /api/users/profile/:username` - Get user profile
-- `PUT /api/users/profile` - Update profile
-- `POST /api/users/follow/:userId` - Follow user
-- `DELETE /api/users/follow/:userId` - Unfollow user
-- `GET /api/users/:username/posts` - Get user posts
-- `GET /api/users/:username/followers` - Get followers
-- `GET /api/users/:username/following` - Get following
-- `GET /api/users/search/:query` - Search users
-
-### Posts
-- `GET /api/posts` - Get all posts
-- `GET /api/posts/feed` - Get feed (followed users)
-- `POST /api/posts` - Create post
-- `GET /api/posts/:id` - Get single post
-- `PUT /api/posts/:id` - Update post
-- `DELETE /api/posts/:id` - Delete post
-- `POST /api/posts/:id/like` - Like post
-- `DELETE /api/posts/:id/like` - Unlike post
-- `GET /api/posts/:id/comments` - Get comments
-- `POST /api/posts/:id/comments` - Add comment
-- `GET /api/posts/tags/popular` - Get popular tags
-
-### Chat
-- `GET /api/chat/conversations` - Get conversations
-- `GET /api/chat/with/:userId` - Get/create chat
-- `GET /api/chat/:chatId/messages` - Get messages
-- `POST /api/chat/:chatId/messages` - Send message
-- `PUT /api/chat/:chatId/read` - Mark as read
-- `GET /api/chat/unread/count` - Get unread count
-
-### AI Chat
-- `POST /api/ai/chat/start` - Start new chat session
-- `POST /api/ai/chat/message` - Send message to AI
-- `GET /api/ai/chat/history/:sessionId` - Get chat history
-- `GET /api/ai/chat/sessions` - Get user's chat sessions
-- `DELETE /api/ai/chat/session/:sessionId` - Delete chat session
-- `GET /api/ai/status` - Check DeepSeek API status
 
 
 
@@ -289,7 +198,6 @@ writers-hub/
 - **Session management** with secure cookies
 - **CORS protection** for API endpoints
 - **Rate limiting** to prevent abuse
-- **Input validation** and sanitization
 
 
 ## 🚀 Deployment
@@ -306,17 +214,6 @@ writers-hub/
 2. Serve the `build` folder using a web server
 3. Configure proxy to backend API
 
-### Docker Deployment (Optional)
-```dockerfile
-# Backend Dockerfile
-FROM node:16-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
-EXPOSE 5000
-CMD ["npm", "start"]
-```
 
 ## 🤝 Contributing
 
@@ -326,9 +223,7 @@ CMD ["npm", "start"]
 4. Add tests if applicable
 5. Submit a pull request
 
-## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## 🆘 Support
 
