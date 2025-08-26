@@ -9,7 +9,7 @@ A full-stack social media platform designed specifically for writers, featuring 
 - **Rich Text Editor** - Create beautiful posts with formatting, images, and more
 - **Real-time Chat** - Connect with other writers through Socket.io
 
-- **AI Writing Assistant** - Generate content in your unique style using DeepSeek AI
+- **AI Writing Assistant** - Generate content in your unique style using OpenRouter
 - **Dark/Light Theme** - Toggle between themes with user preference saving
 
 ### Social Features
@@ -20,7 +20,6 @@ A full-stack social media platform designed specifically for writers, featuring 
 - **Search & Explore** - Discover posts by tags, authors, or content
 
 ### AI Integration
-- **DeepSeek Chatbot** - Interactive AI writing assistant
 - **Chat Sessions** - Persistent conversation history
 - **Writing Help** - Brainstorming, editing, and creative inspiration
 - **Real-time Responses** - Instant AI assistance for writers
@@ -33,8 +32,6 @@ A full-stack social media platform designed specifically for writers, featuring 
 - **PostgreSQL** - Database
 - **Passport.js** - Authentication
 - **Socket.io** - Real-time communication
-
-- **Axios** - HTTP client for DeepSeek AI integration
 
 ### Frontend
 - **React** - UI library
@@ -122,8 +119,8 @@ SESSION_SECRET=your_session_secret_key
 # JWT Configuration
 JWT_SECRET=your_jwt_secret_key
 
-# DeepSeek AI Configuration
-OPENROUTER_API_KEY=your_deepseek_api_key_here
+# OpenRouter AI Configuration
+OPENROUTER_API_KEY=your_openrouter_api_key_here
 
 
 ```
@@ -188,7 +185,7 @@ The application will be available at:
 ### For Developers
 1. **Set up the environment** following the prerequisites
 2. **Configure Google OAuth** for authentication
-3. **Set up DeepSeek API** for AI features
+3. **Set up openrouter API** for AI features
 4. **Run the application** in development mode
 5. **Customize and extend** the platform as needed
 
